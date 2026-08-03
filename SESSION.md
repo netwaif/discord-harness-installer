@@ -13,15 +13,15 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-스펙 최종 승인됨(2026-08-04, 사용자 확정 + 컨트롤타워 교차 검수 통과).
-구현 미착수 — 다음 세션은 플랜 작성부터.
+Task 6 완료(fetch 서브커맨드 구현). 테스트 6/6 PASS. 커밋: c60730b.
+다음 세션: Task 7부터 진행.
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. superpowers:writing-plans로 구현 플랜 작성 — 입력: `docs/superpowers/specs/2026-08-04-harness-installer-design.md` (승인본, 수정 불요). 전례 포맷: 하네스 레포 `docs/superpowers/plans/2026-08-01-folder-bot-plugin.md`
-2. 상류 선행 작업 2건: usage-coach `scripts/install.sh` 신설 / 하네스 레포 오버레이 manifest 정본 신설 (+위임 스크립트 제거 경로 계약)
-3. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
+1. Task 7: plugins (마켓플레이스 플러그인 설치 & 검증)
+2. Task 8: pair (작업 폴더 + 역할 매핑 쓰기)
+3. 이후 Task 9–13 순차
 
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->

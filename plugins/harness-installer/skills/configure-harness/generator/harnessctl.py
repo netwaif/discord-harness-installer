@@ -210,6 +210,97 @@ def cmd_pair(a) -> None:
     save_state(st)
     print(f"페어링 완료: {env_path} (0600) + 상태 폴더 2벌, 토큰 파일 4개 삭제")
 
+def sha256(p: Path) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+def load_manifest() -> dict:
+    mp = harness_repo() / "install/overlay-manifest.json"
+    if not mp.exists():
+        sys.exit(f"오류: 오버레이 manifest 없음 — {mp}\n"
+                 f"다음 행동: harnessctl.py fetch 선행(핀이 manifest 포함 버전인지 doctor 로 확인)")
+    mf = json.loads(mp.read_text())
+    if mf.get("schema_version") != SCHEMA_VERSION:
+        sys.exit(f"오류: manifest schema_version {mf.get('schema_version')} ≠ {SCHEMA_VERSION}"
+                 f" — 설치기 업데이트 필요")
+    return mf
+
+def apply_overlay(work: Path, st: dict) -> list[str]:
+    mf = load_manifest()
+    out = []
+    for item in mf["overlay"]:
+        src, dst = harness_repo() / item["src"], work / item["dst"]
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if item.get("merge") == "json-mcp-servers" and dst.exists():
+            cur = json.loads(dst.read_text())
+            add = json.loads(src.read_text())
+            added = [k for k in add.get("mcpServers", {})
+                     if k not in cur.setdefault("mcpServers", {})]
+            for k in added:
+                cur["mcpServers"][k] = add["mcpServers"][k]
+            if added:
+                dst.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
+                st["mcp_added"] = sorted(set(st.get("mcp_added", []) + added))
+                out.append(f"오버레이(병합): {dst} += {added}")
+            continue
+        if not (dst.exists() and dst.read_bytes() == src.read_bytes()):
+            shutil.copyfile(src, dst)
+            out.append(f"오버레이: {dst}")
+        dst.chmod(int(item.get("mode", "644"), 8))
+        st["overlay"][item["dst"]] = sha256(dst)
+    body = extract_block((harness_repo() / mf["claude_block"]["src"]).read_text())
+    out += install_claude_block(work / "CLAUDE.md", body)
+    return out
+
+def apply_seeds(work: Path, st: dict) -> list[str]:
+    out = []
+    for item in load_manifest().get("seeds", []):
+        src, dst = harness_repo() / item["src"], work / item["dst"]
+        if dst.exists():
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst)
+        st["overlay"][item["dst"]] = sha256(dst)
+        out.append(f"시드: {dst}")
+    return out
+
+def extract_block(text: str) -> str:
+    if BLOCK_START not in text or BLOCK_END not in text:
+        sys.exit(f"오류: 정본 CLAUDE.md에 마커 블록 없음 ({BLOCK_START})")
+    return text.split(BLOCK_START, 1)[1].split(BLOCK_END, 1)[0]
+
+def install_claude_block(md: Path, body: str) -> list[str]:
+    cur = md.read_text() if md.exists() else ""
+    if BLOCK_START in cur:
+        return []
+    md.write_text(cur + f"\n{BLOCK_START}{body}{BLOCK_END}\n")
+    return [f"CLAUDE.md 블록 설치: {md}"]
+
+def remove_claude_block(md: Path) -> list[str]:
+    if not md.exists():
+        return []
+    cur = md.read_text()
+    if BLOCK_START not in cur or BLOCK_END not in cur:
+        return []
+    pre, rest = cur.split(BLOCK_START, 1)
+    _, post = rest.split(BLOCK_END, 1)
+    md.write_text(pre.rstrip("\n") + ("\n" if pre.strip() else "") + post.lstrip("\n"))
+    return [f"CLAUDE.md 블록 제거: {md}"]
+
+def cmd_install(a) -> None:
+    st = load_state()
+    work = Path(a.work_dir).expanduser() if a.work_dir else resolve_work_dir(a)
+    st["work_dir"] = str(work)
+    out = []
+    if a.phase in ("overlay", "all"):
+        out += apply_overlay(work, st)
+        out += apply_seeds(work, st)
+    # delegate phase 는 Task 10 에서 구현
+    for line in out:
+        print(line)
+    if not a.dry_run:
+        st["steps"][f"install-{a.phase}"] = now()
+    save_state(st)
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -229,6 +320,13 @@ def main() -> None:
     rp.add_argument("--webhook-url-file")
     rp.add_argument("--force", action="store_true")
     rp.set_defaults(fn=cmd_pair)
+    ip = sub.add_parser("install", help="오버레이 적용 + 위임 설치 호출")
+    ip.add_argument("--work-dir")
+    ip.add_argument("--phase", choices=("overlay", "delegate", "all"), default="all")
+    ip.add_argument("--dashboard", action="store_true")
+    ip.add_argument("--autostart", action="store_true")
+    ip.add_argument("--dry-run", action="store_true")
+    ip.set_defaults(fn=cmd_install)
     a = p.parse_args()
     a.fn(a)
 

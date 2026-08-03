@@ -191,3 +191,52 @@ def test_pair_missing_token_file_names_it(tmp_path):
     (work / ".bot-token-orch").write_text("t\n")
     r = _pair(tmp_path, work)
     assert r.returncode != 0 and ".bot-token-claude" in r.stderr
+
+def _overlay(tmp_path, work):
+    return run(tmp_path, "install", "--work-dir", str(work), "--phase", "overlay")
+
+def test_overlay_copies_manifest_files(tmp_path):
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    r = _overlay(tmp_path, work)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert (work / "scripts/bot-up.sh").read_text() == STUB
+    assert os.access(work / "scripts/bot-up.sh", os.X_OK)
+    assert (work / ".env.example").exists()
+    assert (work / "chat/CLAUDE.md").exists()               # seed
+    st = json.loads((tmp_path / ".config/discord-harness/state.json").read_text())
+    assert "scripts/bot-up.sh" in st["overlay"]
+    assert len(st["overlay"]["scripts/bot-up.sh"]) == 64    # sha256 기록
+
+def test_overlay_claude_block_and_mcp_merge_nondestructive(tmp_path):
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    original = "# 내 규칙\n\n소중한 내용.\n"
+    (work / "CLAUDE.md").write_text(original)
+    (work / ".mcp.json").write_text(json.dumps({"mcpServers": {"mine": {"command": "x"}}}))
+    (work / "SESSION.md").write_text("세션 기록\n")
+    r = _overlay(tmp_path, work)
+    assert r.returncode == 0, r.stdout + r.stderr
+    text = (work / "CLAUDE.md").read_text()
+    assert original in text and "<!-- discord-multiagent:start -->" in text
+    mcp = json.loads((work / ".mcp.json").read_text())
+    assert "mine" in mcp["mcpServers"] and "codex" in mcp["mcpServers"]
+    assert (work / "SESSION.md").read_text() == "세션 기록\n"   # SESSION.md 무접촉
+    st = json.loads((tmp_path / ".config/discord-harness/state.json").read_text())
+    assert st["mcp_added"] == ["codex"]
+    r2 = _overlay(tmp_path, work)                               # 멱등
+    assert r2.returncode == 0
+    assert (work / "CLAUDE.md").read_text() == text
+
+def test_overlay_seed_preserves_user_edit(tmp_path):
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    _overlay(tmp_path, work)
+    (work / "chat/CLAUDE.md").write_text("사용자 수정본\n")
+    _overlay(tmp_path, work)
+    assert (work / "chat/CLAUDE.md").read_text() == "사용자 수정본\n"
+
+def test_overlay_without_fetch_fails_with_hint(tmp_path):
+    work = tmp_path / "work"; work.mkdir()
+    r = _overlay(tmp_path, work)
+    assert r.returncode != 0 and "fetch" in r.stderr
