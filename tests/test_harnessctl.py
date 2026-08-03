@@ -322,3 +322,33 @@ def test_verify_connection_failed_is_fail(tmp_path):
     r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook")
     assert r.returncode == 1
     assert "[FAIL] 오케스트레이터" in r.stdout
+
+def test_doctor_warns_on_pin_mismatch(tmp_path):
+    fetched(tmp_path)
+    sp = tmp_path / ".config/discord-harness/state.json"
+    st = json.loads(sp.read_text())
+    st["repos"]["usage-coach"]["ref"] = "v9.9.9"
+    sp.write_text(json.dumps(st))
+    r = run(tmp_path, "doctor")
+    assert "[WARN]" in r.stdout and "usage-coach" in r.stdout and "v9.9.9" in r.stdout
+
+def test_doctor_warns_on_missing_contract_file(tmp_path):
+    fetched(tmp_path)
+    (tmp_path / ".local/share/discord-harness/repos/usage-coach/scripts/uninstall.sh").unlink()
+    r = run(tmp_path, "doctor")
+    assert "[WARN]" in r.stdout and "uninstall.sh" in r.stdout
+
+def test_doctor_fails_on_manifest_schema_mismatch(tmp_path):
+    fetched(tmp_path)
+    mp = tmp_path / ".local/share/discord-harness/repos/discord-multiagent/install/overlay-manifest.json"
+    mf = json.loads(mp.read_text()); mf["schema_version"] = 99
+    mp.write_text(json.dumps(mf))
+    r = run(tmp_path, "doctor")
+    assert r.returncode == 1 and "schema_version" in r.stdout
+
+def test_doctor_plugin_version_check(tmp_path):
+    fetched(tmp_path)
+    old = tmp_path / ".claude/plugins/cache/folder-bot/folder-bot/0.0.1"
+    old.mkdir(parents=True)
+    r = run(tmp_path, "doctor")
+    assert "folder-bot" in r.stdout and "[WARN]" in r.stdout

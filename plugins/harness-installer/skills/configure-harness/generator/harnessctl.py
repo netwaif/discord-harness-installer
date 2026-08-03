@@ -33,6 +33,17 @@ def bridge_repo() -> Path: return repos_dir() / "codex-discord"
 def coach_repo() -> Path: return repos_dir() / "usage-coach"
 def now() -> str: return datetime.now().isoformat(timespec="seconds")
 
+def version_tuple(v: str) -> tuple:
+    nums = re.findall(r"\d+", v)
+    return tuple(int(x) for x in nums[:3]) or (0,)
+
+def installed_plugin_version(name: str):
+    base = home() / ".claude/plugins/cache" / name / name
+    if not base.is_dir():
+        return None
+    vers = [d.name for d in base.iterdir() if d.is_dir()]
+    return max(vers, key=version_tuple) if vers else None
+
 def repo_url(name: str) -> str:
     base = os.environ.get("HARNESS_REPO_BASE")
     if base:
@@ -377,6 +388,68 @@ def judge_bridge(logname: str):
         return "OK", f"브리지 로그인 확인({logname})"
     return "FAIL", f"브리지 로그인 없음 — {p} 확인"
 
+def cmd_doctor(a) -> None:
+    fails = 0
+    def rep(level, msg):
+        nonlocal fails
+        if level == "FAIL":
+            fails += 1
+        print(f"[{level}] {msg}")
+    pn = pins()
+    st = load_state()
+    for name in REPO_NAMES:
+        got = st.get("repos", {}).get(name)
+        pin = pn["repos"][name]
+        if not got:
+            rep("WARN", f"{name}: fetch 기록 없음 — harnessctl.py fetch 필요")
+            continue
+        if got["ref"] != pin:
+            rep("WARN", f"{name}: 설치 {got['ref']} ≠ 검증 조합 {pin} — 설치기·부품 버전 어긋남")
+            continue
+        cur = run_git(["rev-parse", "HEAD"], cwd=repos_dir() / name).stdout.strip()
+        if cur and cur != got["commit"]:
+            rep("WARN", f"{name}: HEAD가 기록과 다름(임의 pull?) — 검증 조합 이탈")
+        else:
+            rep("OK", f"{name}: {got['ref']}")
+    for pname, _ in PLUGINS:
+        v = installed_plugin_version(pname)
+        need = pn["plugins"][pname]
+        if v is None:
+            rep("WARN", f"플러그인 {pname} 미설치 — harnessctl.py plugins 필요")
+        elif version_tuple(v) < version_tuple(need):
+            rep("WARN", f"플러그인 {pname} {v} < 호환 최소 {need}")
+        else:
+            rep("OK", f"플러그인 {pname} {v}")
+    for p in (bridge_repo() / "scripts/install.sh", bridge_repo() / "scripts/uninstall.sh",
+              coach_repo() / "scripts/install.sh", coach_repo() / "scripts/uninstall.sh",
+              harness_repo() / "scripts/install-autostart.sh"):
+        if not p.exists():
+            rep("WARN", f"위임 계약 파일 없음: {p}")
+        elif not os.access(p, os.X_OK):
+            rep("WARN", f"위임 계약 실행권한 없음: {p}")
+        else:
+            rep("OK", f"위임 계약: {p.parent.parent.name}/{p.parent.name}/{p.name}")
+    mp = harness_repo() / "install/overlay-manifest.json"
+    if not mp.exists():
+        rep("WARN", f"오버레이 manifest 없음: {mp}")
+    else:
+        sv = json.loads(mp.read_text()).get("schema_version")
+        rep("OK" if sv == SCHEMA_VERSION else "FAIL",
+            f"manifest schema_version {sv}" + ("" if sv == SCHEMA_VERSION else f" ≠ {SCHEMA_VERSION} — 설치기 업데이트 필요"))
+    wd = getattr(a, "work_dir", None) or st.get("work_dir")
+    if wd:
+        work = Path(wd).expanduser()
+        rep("OK" if (work / ".env").exists() else "WARN",
+            f"페어링(.env): {'있음' if (work / '.env').exists() else '없음 — pair 필요'}")
+        for label, p in ((ORCH_PLIST_LABEL, home() / f"Library/LaunchAgents/{ORCH_PLIST_LABEL}.plist"),
+                         (CHAT_PLIST_LABEL, chat_plist_path())):
+            rep("OK" if p.exists() else "WARN", f"plist {label}: {'있음' if p.exists() else '없음'}")
+        for sess in ("orchestrator", CHAT_SESSION):
+            alive = subprocess.run([find_tmux(), "has-session", "-t", sess],
+                                   capture_output=True).returncode == 0
+            rep("OK" if alive else "WARN", f"tmux 세션 {sess} {'생존' if alive else '없음'}")
+    sys.exit(1 if fails else 0)
+
 def cmd_verify(a) -> None:
     work = resolve_work_dir(a)
     fails = 0
@@ -492,6 +565,9 @@ def main() -> None:
     vp.add_argument("--work-dir")
     vp.add_argument("--skip-webhook", action="store_true")
     vp.set_defaults(fn=cmd_verify)
+    dp = sub.add_parser("doctor", help="종합 점검 + 버전 호환 + 위임 계약 방어(읽기 전용)")
+    dp.add_argument("--work-dir")
+    dp.set_defaults(fn=cmd_doctor)
     a = p.parse_args()
     a.fn(a)
 
