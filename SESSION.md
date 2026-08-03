@@ -13,15 +13,15 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-구현 플랜 완성(`docs/superpowers/plans/2026-08-04-harness-installer.md`) 후
-subagent-driven-development로 실행 중. Task 1~9 완료(상류 3건 포함), Task 10부터 남음.
+구현 완료 — Task 1~14 전부 리뷰 통과, 최종 전체 리뷰 findings(I-1 .gitignore 비밀 보호,
+I-2 수다 클로드 기동, T13/T14)까지 수정·재리뷰 해소(설치기 1fcd356, 하네스 0a5a3bd).
+자동 테스트 4레포 녹색(설치기 31 passed). 남은 것 = Task 15 릴리즈 게이트만.
 진행 정본: `.superpowers/sdd/2026-08-04-harness-installer/progress.md`
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. SDD 실행 계속 — Task 10(install --phase delegate)부터 Task 14까지, 레저(progress.md) 기준 재개
-2. Task 15 릴리즈 게이트는 사용자 게이트(상류 태깅·별도 macOS 계정 E2E·코덱스 스모크)
+1. Task 15 릴리즈 게이트(사용자 게이트) — ①상류 3레포 푸시+태깅(discord-multiagent는 release-snapshot→main refspec 주의) ②pins.json 실태그 교체 ③별도 macOS 계정 클로드 4봇 E2E ④코덱스 스모크 E2E ⑤릴리즈 커밋+푸시
 3. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
 
 ## 결정 기록
