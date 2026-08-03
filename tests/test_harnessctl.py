@@ -24,6 +24,7 @@ MANIFEST = {
         {"src": "scripts/install-autostart.sh", "dst": "scripts/install-autostart.sh", "mode": "755"},
         {"src": ".env.example", "dst": ".env.example", "mode": "644"},
         {"src": ".mcp.json", "dst": ".mcp.json", "mode": "644", "merge": "json-mcp-servers"},
+        {"src": "install/gitignore-discord", "dst": ".gitignore", "mode": "644", "merge": "append-lines"},
     ],
     "seeds": [{"src": "install/chat-CLAUDE.md", "dst": "chat/CLAUDE.md"}],
     "claude_block": {"src": "CLAUDE.md"},
@@ -62,6 +63,8 @@ def make_fixture_repos(tmp_path):
                       "승인 판정·미러 규칙(정본 본문).\n<!-- discord-multiagent:end -->\n"),
         "install/overlay-manifest.json": json.dumps(MANIFEST, indent=2),
         "install/chat-CLAUDE.md": "# 수다 채널 클로드\n호명될 때만 응답.\n",
+        "install/gitignore-discord": ("# discord 하네스 비밀 — 커밋 금지 (harness-installer overlay)\n"
+                                      ".env\n.discord-state/\n.bot-token-*\n.webhook-url\n"),
     }
     bridge_files = {
         "scripts/install.sh": STUB, "scripts/uninstall.sh": STUB,
@@ -237,6 +240,31 @@ def test_overlay_seed_preserves_user_edit(tmp_path):
     _overlay(tmp_path, work)
     assert (work / "chat/CLAUDE.md").read_text() == "사용자 수정본\n"
 
+def test_overlay_append_lines_merges_gitignore_and_reverts_on_remove(tmp_path):
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    original = "node_modules/\n"
+    (work / ".gitignore").write_text(original)
+    r = _overlay(tmp_path, work)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "오버레이(줄 추가): " in r.stdout and ".gitignore += 5줄" in r.stdout
+    text = (work / ".gitignore").read_text()
+    assert text.startswith(original)
+    for line in ("# discord 하네스 비밀 — 커밋 금지 (harness-installer overlay)",
+                 ".env", ".discord-state/", ".bot-token-*", ".webhook-url"):
+        assert line in text.splitlines()
+    st = json.loads((tmp_path / ".config/discord-harness/state.json").read_text())
+    assert st["lines_added"][".gitignore"] == [
+        "# discord 하네스 비밀 — 커밋 금지 (harness-installer overlay)",
+        ".env", ".discord-state/", ".bot-token-*", ".webhook-url"]
+    r2 = _overlay(tmp_path, work)                               # 멱등
+    assert r2.returncode == 0
+    assert (work / ".gitignore").read_text() == text
+    assert "오버레이(줄 추가): " not in r2.stdout
+    r3 = run(tmp_path, "remove", "--work-dir", str(work))
+    assert r3.returncode == 0, r3.stdout + r3.stderr
+    assert (work / ".gitignore").read_text() == original
+
 def test_overlay_without_fetch_fails_with_hint(tmp_path):
     work = tmp_path / "work"; work.mkdir()
     r = _overlay(tmp_path, work)
@@ -377,6 +405,7 @@ def test_remove_diff_zero_and_preserves_user_data(tmp_path):
     # 설치기가 만든 것은 제거
     assert not (work2 / "scripts/bot-up.sh").exists()
     assert not (work2 / ".env.example").exists()
+    assert not (work2 / ".gitignore").exists()
     assert not (tmp_path / "Library/LaunchAgents/com.discord-harness.chat-claude.plist").exists()
     assert not (tmp_path / ".local/share/discord-harness/repos").exists()
     assert not (tmp_path / ".config/discord-harness/state.json").exists()
@@ -384,6 +413,15 @@ def test_remove_diff_zero_and_preserves_user_data(tmp_path):
     assert (work2 / ".env").exists()
     assert (work2 / ".discord-state/.env").exists()
     assert (work2 / "chat/.discord-state/.env").exists()
+
+def test_remove_warns_on_delegated_uninstall_failure(tmp_path):
+    base, work = _installed(tmp_path)
+    coach_uninstall = tmp_path / ".local/share/discord-harness/repos/usage-coach/scripts/uninstall.sh"
+    coach_uninstall.write_text("#!/bin/bash\nexit 1\n")
+    coach_uninstall.chmod(0o755)
+    r = run(tmp_path, "remove", "--work-dir", str(work))
+    assert r.returncode == 0, r.stdout + r.stderr   # 계속 진행 의미론 유지
+    assert "[WARN] 제거 스크립트 실패" in r.stdout
 
 def test_remove_preserves_user_modified_overlay(tmp_path):
     base, work = _installed(tmp_path)

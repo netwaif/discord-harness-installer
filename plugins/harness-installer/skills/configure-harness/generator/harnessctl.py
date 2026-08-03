@@ -56,7 +56,7 @@ def pins() -> dict:
 def load_state() -> dict:
     if not state_path().exists():
         return {"schema_version": SCHEMA_VERSION, "work_dir": None,
-                "repos": {}, "steps": {}, "overlay": {}, "mcp_added": []}
+                "repos": {}, "steps": {}, "overlay": {}, "mcp_added": [], "lines_added": {}}
     return json.loads(state_path().read_text())
 
 def save_state(st: dict) -> None:
@@ -252,6 +252,19 @@ def apply_overlay(work: Path, st: dict) -> list[str]:
                 dst.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
                 st["mcp_added"] = sorted(set(st.get("mcp_added", []) + added))
                 out.append(f"오버레이(병합): {dst} += {added}")
+            continue
+        if item.get("merge") == "append-lines" and dst.exists():
+            cur_lines = dst.read_text().splitlines()
+            cur_rstripped = {c.rstrip() for c in cur_lines}
+            new_lines = [line for line in src.read_text().splitlines()
+                        if line.rstrip() not in cur_rstripped]
+            if new_lines:
+                cur_lines.extend(new_lines)
+                dst.write_text("\n".join(cur_lines) + "\n")
+                added_rec = st.setdefault("lines_added", {})
+                existing = added_rec.get(item["dst"], [])
+                added_rec[item["dst"]] = existing + [l for l in new_lines if l not in existing]
+                out.append(f"오버레이(줄 추가): {dst} += {len(new_lines)}줄")
             continue
         if not (dst.exists() and dst.read_bytes() == src.read_bytes()):
             shutil.copyfile(src, dst)
@@ -463,7 +476,9 @@ def cmd_remove(a) -> None:
     for script, cwd in ((bridge_repo() / "scripts/uninstall.sh", bridge_repo()),
                         (coach_repo() / "scripts/uninstall.sh", coach_repo())):
         if script.exists():
-            subprocess.run(["bash", str(script)], cwd=cwd)
+            r = subprocess.run(["bash", str(script)], cwd=cwd)
+            if r.returncode != 0:
+                print(f"[WARN] 제거 스크립트 실패(exit {r.returncode}): {script} — 수동 확인 필요")
         else:
             print(f"[WARN] 제거 스크립트 없음(수동 확인 필요): {script}")
     for rel, saved in sorted(st.get("overlay", {}).items()):
@@ -484,6 +499,19 @@ def cmd_remove(a) -> None:
             cur.get("mcpServers", {}).pop(k, None)
         mcp_path.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
         print(f".mcp.json 항목 제거: {st['mcp_added']}")
+    for rel, lines in st.get("lines_added", {}).items():
+        p = work / rel
+        if not p.exists():
+            continue
+        cur = p.read_text().splitlines()
+        removed = False
+        for line in lines:
+            if line in cur:
+                cur.remove(line)
+                removed = True
+        if removed:
+            p.write_text("\n".join(cur) + ("\n" if cur else ""))
+            print(f"줄 제거: {p} -= {len(lines)}줄")
     if repos_dir().exists():
         shutil.rmtree(repos_dir())
         print(f"소스 저장소 제거: {repos_dir()}")

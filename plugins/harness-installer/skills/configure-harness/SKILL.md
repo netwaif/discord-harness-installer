@@ -50,6 +50,9 @@ AskUserQuestion 도구가 없는 환경(예: codex)에서는 이 4개를 **채�
 
 ### 3. 디스코드 포탈 수동 단계 (순서대로 안내, 사용자가 끝냈다고 할 때까지 대기)
 
+먼저 설치 루트 폴더를 만든다: `mkdir -p <설치 루트>` (이후 4번 토큰 파일 저장은
+이 폴더 안에서 한다).
+
 1. 디스코드 서버 1개 + 채널 2개(작업용·수다용) 생성. 설정 → 고급 → 개발자 모드
    켠 뒤 두 채널 각각 우클릭 → **채널 ID 복사**, 내 프로필 우클릭 →
    **사용자 ID 복사**(채팅으로 받는다 — ID는 비밀 아님).
@@ -129,6 +132,22 @@ python3 <이 스킬 폴더>/generator/harnessctl.py install --work-dir <설치 �
 
 ### 9. verify + 마무리
 
+verify 전에 수다 클로드를 지금 기동해야 한다. 8단계에서 자동 기동을 켠
+경우(`--autostart`) 오케스트레이터는 `install-autostart.sh`가 즉시 띄우지만,
+수다 클로드는 plist 파일만 생성되고 지금 당장 뜨지는 않는다(재부팅 후에는
+자동 기동). 다음 명령으로 지금 기동한다:
+
+```
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.discord-harness.chat-claude.plist
+```
+
+자동 기동을 끈 경우에는 오케스트레이터·수다 클로드 둘 다 수동으로 기동한다:
+
+```
+tmux new-session -d -s orchestrator '/bin/zsh -lc "cd <설치 루트>; export DISCORD_STATE_DIR=<설치 루트>/.discord-state; exec scripts/bot-up.sh -n orchestrator --remote-control orchestrator --channels plugin:discord@claude-plugins-official"'
+tmux new-session -d -s chat-claude '/bin/zsh -lc "cd <설치 루트>/chat; export DISCORD_STATE_DIR=<설치 루트>/chat/.discord-state; exec <설치 루트>/scripts/bot-up.sh -n chat-claude --remote-control chat-claude --channels plugin:discord@claude-plugins-official"'
+```
+
 ```
 python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 루트>
 ```
@@ -158,6 +177,9 @@ python3 <이 스킬 폴더>/generator/harnessctl.py remove --work-dir <설치 �
 **보존되는 것**을 그대로 안내한다: `.env` · `.discord-state` · `chat/`(사용자
 수정분) · `tasks/` · `SESSION.md` · `~/.config/usage-coach/`. 사용자가 수정한
 오버레이 파일은 해시 불일치로 자동 보존되며 엔진이 `[WARN]`으로 표시한다.
+starter·folder-bot 플러그인과 그 산출물은 remove 범위 밖이다 — 멀티에이전트
+구성 제거는 multi-agent-starter 스킬로, 폴더 봇 제거는 folder-bot 스킬의
+`botctl.py remove`로 각각 안내만 한다.
 
 ## 점검
 
