@@ -89,10 +89,44 @@ def cmd_preflight(a) -> None:
         f"discord 플러그인: {plug if plug.is_dir() else '미설치 — claude 안에서 /plugin 으로 discord 설치'}")
     sys.exit(1 if fails else 0)
 
+def cmd_fetch(a) -> None:
+    pin_repos = pins()["repos"]
+    repos_dir().mkdir(parents=True, exist_ok=True)
+    st = load_state()
+    for name in REPO_NAMES:
+        dst = repos_dir() / name
+        if not dst.exists():
+            r = run_git(["clone", "--quiet", repo_url(name), str(dst)])
+            if r.returncode != 0:
+                sys.exit(f"오류: {name} clone 실패 — {r.stderr.strip()}\n"
+                         f"다음 행동: 네트워크 확인 후 fetch 재실행(멱등)")
+        else:
+            run_git(["fetch", "--tags", "--quiet", "origin"], cwd=dst)
+        if a.latest:
+            head = run_git(["rev-parse", "--abbrev-ref", "origin/HEAD"], cwd=dst).stdout.strip()
+            branch = head.split("/", 1)[1] if "/" in head else "main"
+            run_git(["checkout", "--quiet", branch], cwd=dst)
+            run_git(["pull", "--ff-only", "--quiet"], cwd=dst)
+            ref = "latest"
+        else:
+            ref = pin_repos[name]
+            r = run_git(["checkout", "--quiet", ref], cwd=dst)
+            if r.returncode != 0:
+                sys.exit(f"오류: {name} 핀 {ref} 체크아웃 실패 — {r.stderr.strip()}\n"
+                         f"다음 행동: fetch --latest 로 우회하거나 pins.json 확인")
+        commit = run_git(["rev-parse", "HEAD"], cwd=dst).stdout.strip()
+        st["repos"][name] = {"ref": ref, "commit": commit}
+        print(f"fetch: {name} @ {ref} ({commit[:8]})")
+    st["steps"]["fetch"] = now()
+    save_state(st)
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("preflight", help="전제 도구 점검(읽기 전용)").set_defaults(fn=cmd_preflight)
+    fp = sub.add_parser("fetch", help="정본 3레포 clone/pull (기본: 검증 조합 핀)")
+    fp.add_argument("--latest", action="store_true")
+    fp.set_defaults(fn=cmd_fetch)
     a = p.parse_args()
     a.fn(a)
 
