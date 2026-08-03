@@ -150,6 +150,66 @@ def cmd_plugins(a) -> None:
         st = load_state(); st["steps"]["plugins"] = now(); save_state(st)
     sys.exit(0 if ok else 1)
 
+def read_token_file(work: Path, role: str) -> str:
+    f = work / f".bot-token-{role}"
+    if not f.exists():
+        sys.exit(f"오류: 토큰 파일 없음 — {f}\n다음 행동: pbpaste > {f.name} && chmod 600 {f.name}")
+    tok = f.read_text().strip()
+    if not tok:
+        sys.exit(f"오류: 토큰 파일이 비어 있음 — {f}")
+    return tok
+
+def write_state_dir(state_dir: Path, token: str, channel_id: str,
+                    approver: str, require_mention: bool) -> None:
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "inbox").mkdir(exist_ok=True)
+    env = state_dir / ".env"
+    env.write_text(f"DISCORD_BOT_TOKEN={token}\n")
+    env.chmod(0o600)
+    access = {"dmPolicy": "allowlist", "allowFrom": [approver],
+              "groups": {channel_id: {"requireMention": require_mention, "allowFrom": [approver]}},
+              "pending": {}}
+    (state_dir / "access.json").write_text(json.dumps(access, ensure_ascii=False, indent=2) + "\n")
+
+def cmd_pair(a) -> None:
+    work = Path(a.work_dir).expanduser()
+    env_path = work / ".env"
+    if env_path.exists() and not a.force:
+        sys.exit(f"오류: {env_path} 이미 존재 — 덮어쓰려면 --force")
+    tokens = {role: read_token_file(work, role) for role in ROLES}
+    env_path.write_text(
+        f"WORK_CHANNEL_ID={a.work_channel_id}\n"
+        f"CHAT_CHANNEL_ID={a.chat_channel_id}\n"
+        f"APPROVER_USER_ID={a.approver_user_id}\n"
+        f"ORCH_BOT_TOKEN={tokens['orch']}\n"
+        f"CLAUDE_BOT_TOKEN={tokens['claude']}\n"
+        f"CODEX_BOT_TOKEN={tokens['codex']}\n"
+        f"GEMINI_BOT_TOKEN={tokens['gemini']}\n")
+    env_path.chmod(0o600)
+    write_state_dir(work / ".discord-state", tokens["orch"], a.work_channel_id,
+                    a.approver_user_id, False)
+    write_state_dir(work / "chat/.discord-state", tokens["claude"], a.chat_channel_id,
+                    a.approver_user_id, True)
+    if a.webhook_url_file:
+        wf = Path(a.webhook_url_file).expanduser()
+        if not wf.exists():
+            sys.exit(f"오류: 웹훅 URL 파일 없음 — {wf}")
+        uc = home() / ".config/usage-coach"
+        uc.mkdir(parents=True, exist_ok=True)
+        cfg_path = uc / "discord.json"
+        cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
+        cfg["webhook_url"] = wf.read_text().strip()
+        cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
+        cfg_path.chmod(0o600)
+        wf.unlink()
+    for role in ROLES:
+        (work / f".bot-token-{role}").unlink()
+    st = load_state()
+    st["work_dir"] = str(work)
+    st["steps"]["pair"] = now()
+    save_state(st)
+    print(f"페어링 완료: {env_path} (0600) + 상태 폴더 2벌, 토큰 파일 4개 삭제")
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -161,6 +221,14 @@ def main() -> None:
     pp.add_argument("--host", choices=("claude", "codex"), default="claude")
     pp.add_argument("--dry-run", action="store_true")
     pp.set_defaults(fn=cmd_plugins)
+    rp = sub.add_parser("pair", help="토큰 파일 수령 → .env 조립(0600) → 토큰 파일 삭제")
+    rp.add_argument("--work-dir", required=True)
+    rp.add_argument("--work-channel-id", required=True)
+    rp.add_argument("--chat-channel-id", required=True)
+    rp.add_argument("--approver-user-id", required=True)
+    rp.add_argument("--webhook-url-file")
+    rp.add_argument("--force", action="store_true")
+    rp.set_defaults(fn=cmd_pair)
     a = p.parse_args()
     a.fn(a)
 

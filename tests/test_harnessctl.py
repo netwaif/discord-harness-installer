@@ -135,3 +135,59 @@ def test_plugins_failure_prints_manual_fallback(tmp_path):
     r = run(tmp_path, "plugins", env_extra={"PATH": "/usr/bin:/bin"})
     assert r.returncode == 1
     assert "수동 폴백" in r.stdout
+
+def _token_files(work):
+    for role in ("orch", "claude", "codex", "gemini"):
+        (work / f".bot-token-{role}").write_text(f"tok-{role}\n")
+
+def _pair(tmp_path, work, *extra):
+    return run(tmp_path, "pair", "--work-dir", str(work),
+               "--work-channel-id", "111", "--chat-channel-id", "222",
+               "--approver-user-id", "999", *extra)
+
+def test_pair_assembles_env_and_state_dirs(tmp_path):
+    work = tmp_path / "work"; work.mkdir()
+    _token_files(work)
+    r = _pair(tmp_path, work)
+    assert r.returncode == 0, r.stderr
+    env = (work / ".env").read_text()
+    assert "WORK_CHANNEL_ID=111\n" in env and "CHAT_CHANNEL_ID=222\n" in env
+    assert "APPROVER_USER_ID=999\n" in env and "ORCH_BOT_TOKEN=tok-orch\n" in env
+    assert "CLAUDE_BOT_TOKEN=tok-claude\n" in env and "GEMINI_BOT_TOKEN=tok-gemini\n" in env
+    assert oct((work / ".env").stat().st_mode)[-3:] == "600"
+    orch = json.loads((work / ".discord-state/access.json").read_text())
+    assert orch["groups"]["111"]["requireMention"] is False
+    assert (work / ".discord-state/.env").read_text() == "DISCORD_BOT_TOKEN=tok-orch\n"
+    chat = json.loads((work / "chat/.discord-state/access.json").read_text())
+    assert chat["groups"]["222"]["requireMention"] is True
+    assert (work / "chat/.discord-state/inbox").is_dir()
+    for role in ("orch", "claude", "codex", "gemini"):
+        assert not (work / f".bot-token-{role}").exists()   # 토큰 파일 즉시 삭제
+    assert "tok-orch" not in r.stdout                        # 비밀 stdout 금지
+
+def test_pair_refuses_overwrite_without_force(tmp_path):
+    work = tmp_path / "work"; work.mkdir()
+    _token_files(work)
+    assert _pair(tmp_path, work).returncode == 0
+    _token_files(work)
+    r = _pair(tmp_path, work)
+    assert r.returncode != 0
+    assert "tok-orch" in (work / ".env").read_text()   # 기존 보존
+    _token_files(work)
+    assert _pair(tmp_path, work, "--force").returncode == 0
+
+def test_pair_webhook_file(tmp_path):
+    work = tmp_path / "work"; work.mkdir()
+    _token_files(work)
+    wf = work / ".webhook-url"; wf.write_text("https://example.invalid/hook\n")
+    r = _pair(tmp_path, work, "--webhook-url-file", str(wf))
+    assert r.returncode == 0, r.stderr
+    cfg = json.loads((tmp_path / ".config/usage-coach/discord.json").read_text())
+    assert cfg["webhook_url"] == "https://example.invalid/hook"
+    assert not wf.exists()
+
+def test_pair_missing_token_file_names_it(tmp_path):
+    work = tmp_path / "work"; work.mkdir()
+    (work / ".bot-token-orch").write_text("t\n")
+    r = _pair(tmp_path, work)
+    assert r.returncode != 0 and ".bot-token-claude" in r.stderr
