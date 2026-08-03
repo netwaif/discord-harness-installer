@@ -286,6 +286,77 @@ def remove_claude_block(md: Path) -> list[str]:
     md.write_text(pre.rstrip("\n") + ("\n" if pre.strip() else "") + post.lstrip("\n"))
     return [f"CLAUDE.md 블록 제거: {md}"]
 
+def parse_env(path: Path) -> dict:
+    out = {}
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            out[k] = v
+    return out
+
+def write_bridge_envs(work: Path) -> list[str]:
+    if not (work / ".env").exists():
+        sys.exit(f"오류: {work / '.env'} 없음 — pair 선행 필요(SKILL 7단계)")
+    env = parse_env(work / ".env")
+    chat = work / "chat"
+    chat.mkdir(exist_ok=True)
+    out = []
+    plans = [(".env", env["CODEX_BOT_TOKEN"], "코덱스", []),
+             (".env.gemini", env["GEMINI_BOT_TOKEN"], "제미나이",
+              ["ENGINE=agy", "DATA_DIR=data-gemini",
+               f"AGY_BIN={shutil.which('agy') or 'agy'}"])]
+    for fname, token, trigger, extra in plans:
+        p = bridge_repo() / fname
+        if p.exists():
+            continue  # 멱등 — 기존(사용자 수정 포함) 보존
+        lines = [f"DISCORD_TOKEN={token}",
+                 f"ALLOWED_USER_IDS={env['APPROVER_USER_ID']}",
+                 f"CODEX_WORKDIR={chat}",
+                 f"CHANNEL_IDS={env['CHAT_CHANNEL_ID']}",
+                 f"NAME_TRIGGER_CHANNEL_IDS={env['CHAT_CHANNEL_ID']}",
+                 f"TRIGGER_NAME={trigger}", *extra]
+        p.write_text("\n".join(lines) + "\n")
+        p.chmod(0o600)
+        out.append(f"브리지 환경 조립: {p}")
+    return out
+
+def build_chat_cmd(work: Path) -> str:
+    chat = work / "chat"
+    path_esc = os.environ.get("PATH", "").replace("&", "&amp;")
+    parts = [f"cd {chat}",
+             f'export PATH="{path_esc}"',
+             f"export DISCORD_STATE_DIR={chat}/.discord-state",
+             f"exec {work}/scripts/bot-up.sh -n {CHAT_SESSION} --remote-control {CHAT_SESSION}"
+             " --channels plugin:discord@claude-plugins-official"]
+    return "/bin/zsh -lc '" + "; ".join(parts) + "'"
+
+def chat_plist_path() -> Path:
+    return home() / f"Library/LaunchAgents/{CHAT_PLIST_LABEL}.plist"
+
+def write_chat_plist(work: Path) -> list[str]:
+    p = chat_plist_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    data = {"Label": CHAT_PLIST_LABEL,
+            "ProgramArguments": [find_tmux(), "new-session", "-d", "-s", CHAT_SESSION,
+                                 build_chat_cmd(work)],
+            "RunAtLoad": True}
+    blob = plistlib.dumps(data)
+    if p.exists() and p.read_bytes() == blob:
+        return []
+    p.write_bytes(blob)
+    return [f"plist 생성: {p} (다음 부팅부터 수다 클로드 자동 기동)"]
+
+def delegate(argv: list, cwd: Path, dry: bool, log_hint: str) -> None:
+    line = " ".join(str(x) for x in argv)
+    if dry:
+        print(f"위임(dry-run): (cd {cwd}) {line}")
+        return
+    r = subprocess.run([str(x) for x in argv], cwd=cwd)
+    if r.returncode != 0:
+        sys.exit(f"오류: 위임 스크립트 실패(exit {r.returncode}) — {line}\n"
+                 f"로그: {log_hint}\n다음 행동: 원인 해결 후 install 재실행(멱등)")
+
 def cmd_install(a) -> None:
     st = load_state()
     work = Path(a.work_dir).expanduser() if a.work_dir else resolve_work_dir(a)
@@ -294,7 +365,22 @@ def cmd_install(a) -> None:
     if a.phase in ("overlay", "all"):
         out += apply_overlay(work, st)
         out += apply_seeds(work, st)
-    # delegate phase 는 Task 10 에서 구현
+    if a.phase in ("delegate", "all"):
+        for line in write_bridge_envs(work):
+            print(line)
+        delegate(["bash", bridge_repo() / "scripts/install.sh"], bridge_repo(),
+                 a.dry_run, str(bridge_repo() / "logs"))
+        if a.dashboard:
+            delegate(["bash", coach_repo() / "scripts/install.sh"], coach_repo(),
+                     a.dry_run, "~/.config/usage-coach/")
+        if a.autostart:
+            delegate(["bash", work / "scripts/install-autostart.sh"], work,
+                     a.dry_run, "launchctl print gui/$(id -u)/" + ORCH_PLIST_LABEL)
+            if a.dry_run:
+                print(f"위임(dry-run): plist 생성 예정 — {chat_plist_path()}")
+            else:
+                for line in write_chat_plist(work):
+                    print(line)
     for line in out:
         print(line)
     if not a.dry_run:

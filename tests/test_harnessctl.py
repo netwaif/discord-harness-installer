@@ -240,3 +240,55 @@ def test_overlay_without_fetch_fails_with_hint(tmp_path):
     work = tmp_path / "work"; work.mkdir()
     r = _overlay(tmp_path, work)
     assert r.returncode != 0 and "fetch" in r.stderr
+
+def _installed(tmp_path):
+    """fetch → overlay → pair 까지 마친 작업 폴더를 준비한다."""
+    base = fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    assert _overlay(tmp_path, work).returncode == 0
+    _token_files(work)
+    assert _pair(tmp_path, work).returncode == 0
+    (tmp_path / "Library/LaunchAgents").mkdir(parents=True, exist_ok=True)
+    return base, work
+
+def test_delegate_dry_run_prints_commands_only(tmp_path):
+    base, work = _installed(tmp_path)
+    r = run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate",
+            "--dashboard", "--autostart", "--dry-run")
+    assert r.returncode == 0, r.stdout + r.stderr
+    repos = tmp_path / ".local/share/discord-harness/repos"
+    assert f"위임(dry-run): (cd {repos}/codex-discord)" in r.stdout
+    assert "codex-discord/scripts/install.sh" in r.stdout
+    assert "usage-coach/scripts/install.sh" in r.stdout
+    assert "scripts/install-autostart.sh" in r.stdout
+    assert not (tmp_path / "Library/LaunchAgents/com.discord-harness.chat-claude.plist").exists()
+
+def test_delegate_assembles_bridge_envs(tmp_path):
+    base, work = _installed(tmp_path)
+    r = run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--dry-run")
+    assert r.returncode == 0, r.stdout + r.stderr
+    bridge = tmp_path / ".local/share/discord-harness/repos/codex-discord"
+    env = (bridge / ".env").read_text()
+    assert "DISCORD_TOKEN=tok-codex" in env and "ALLOWED_USER_IDS=999" in env
+    assert f"CODEX_WORKDIR={work}/chat" in env and "CHANNEL_IDS=222" in env
+    assert "TRIGGER_NAME=코덱스" in env
+    gem = (bridge / ".env.gemini").read_text()
+    assert "DISCORD_TOKEN=tok-gemini" in gem and "ENGINE=agy" in gem
+    assert "DATA_DIR=data-gemini" in gem and "TRIGGER_NAME=제미나이" in gem
+    assert oct((bridge / ".env").stat().st_mode)[-3:] == "600"
+    # 멱등 — 재실행해도 기존 .env 보존
+    (bridge / ".env").write_text("DISCORD_TOKEN=user-edited\n")
+    run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--dry-run")
+    assert (bridge / ".env").read_text() == "DISCORD_TOKEN=user-edited\n"
+
+def test_delegate_real_run_writes_chat_plist(tmp_path):
+    base, work = _installed(tmp_path)
+    r = run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--autostart")
+    assert r.returncode == 0, r.stdout + r.stderr   # fixture 위임 스크립트 = echo stub
+    p = tmp_path / "Library/LaunchAgents/com.discord-harness.chat-claude.plist"
+    args = plistlib.loads(p.read_bytes())["ProgramArguments"]
+    assert args[args.index("-s") + 1] == "chat-claude" and "new-session" in args
+    cmd = args[-1]
+    assert f"cd {work}/chat" in cmd
+    assert f"DISCORD_STATE_DIR={work}/chat/.discord-state" in cmd
+    assert "scripts/bot-up.sh" in cmd and "--channels plugin:discord@claude-plugins-official" in cmd
