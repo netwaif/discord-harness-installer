@@ -117,3 +117,21 @@ def test_fetch_missing_pin_tag_fails_with_hint(tmp_path):
     r = run(tmp_path, "fetch", env_extra={"HARNESS_REPO_BASE": str(base)})
     assert r.returncode != 0
     assert "핀" in r.stderr and "usage-coach" in r.stderr
+
+def test_plugins_dry_run_prints_commands(tmp_path):
+    r = run(tmp_path, "plugins", "--dry-run")
+    assert r.returncode == 0
+    assert "claude plugin marketplace add netwaif/multi-agent-starter" in r.stdout
+    assert "claude plugin install multi-agent-starter@multi-agent-starter" in r.stdout
+    assert "claude plugin marketplace add netwaif/folder-bot" in r.stdout
+    assert "claude plugin install folder-bot@folder-bot" in r.stdout
+
+def test_plugins_codex_host(tmp_path):
+    r = run(tmp_path, "plugins", "--host", "codex", "--dry-run")
+    assert "codex plugin marketplace add netwaif/folder-bot" in r.stdout
+
+def test_plugins_failure_prints_manual_fallback(tmp_path):
+    # PATH 를 비워 claude 실행 자체가 불가능한 상황 → 수동 폴백 안내 + exit 1
+    r = run(tmp_path, "plugins", env_extra={"PATH": "/usr/bin:/bin"})
+    assert r.returncode == 1
+    assert "수동 폴백" in r.stdout

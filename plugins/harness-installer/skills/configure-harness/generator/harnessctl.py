@@ -120,6 +120,36 @@ def cmd_fetch(a) -> None:
     st["steps"]["fetch"] = now()
     save_state(st)
 
+def plugin_cmds(host: str) -> list[list[str]]:
+    cmds = []
+    for name, repo in PLUGINS:
+        cmds.append([host, "plugin", "marketplace", "add", repo])
+        cmds.append([host, "plugin", "install", f"{name}@{name}"])
+    return cmds
+
+def cmd_plugins(a) -> None:
+    ok = True
+    for argv in plugin_cmds(a.host):
+        line = " ".join(argv)
+        if a.dry_run:
+            print(line)
+            continue
+        try:
+            r = subprocess.run(argv, capture_output=True, text=True, timeout=120)
+            failed, detail = r.returncode != 0, (r.stderr or r.stdout).strip()[:200]
+        except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+            failed, detail = True, str(e)
+        if failed:
+            ok = False
+            print(f"[FAIL] {line} — {detail}")
+            print(f"  수동 폴백: 터미널에서 `{line}` 직접 실행, 또는 {a.host} 대화에서 "
+                  f"`/plugin marketplace add {argv[-1]}` 후 /plugin 으로 설치")
+        else:
+            print(f"[OK] {line}")
+    if ok and not a.dry_run:
+        st = load_state(); st["steps"]["plugins"] = now(); save_state(st)
+    sys.exit(0 if ok else 1)
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -127,6 +157,10 @@ def main() -> None:
     fp = sub.add_parser("fetch", help="정본 3레포 clone/pull (기본: 검증 조합 핀)")
     fp.add_argument("--latest", action="store_true")
     fp.set_defaults(fn=cmd_fetch)
+    pp = sub.add_parser("plugins", help="starter·folder-bot 플러그인 직접 설치")
+    pp.add_argument("--host", choices=("claude", "codex"), default="claude")
+    pp.add_argument("--dry-run", action="store_true")
+    pp.set_defaults(fn=cmd_plugins)
     a = p.parse_args()
     a.fn(a)
 
