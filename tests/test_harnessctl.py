@@ -352,3 +352,46 @@ def test_doctor_plugin_version_check(tmp_path):
     old.mkdir(parents=True)
     r = run(tmp_path, "doctor")
     assert "folder-bot" in r.stdout and "[WARN]" in r.stdout
+
+def test_remove_diff_zero_and_preserves_user_data(tmp_path):
+    fetched(tmp_path)
+    (tmp_path / "Library/LaunchAgents").mkdir(parents=True, exist_ok=True)
+    work2 = tmp_path / "work2"; work2.mkdir()
+    orig_md = "# 내 규칙\n\n소중한 내용.\n"
+    orig_mcp = json.dumps({"mcpServers": {"mine": {"command": "x"}}}, indent=2) + "\n"
+    (work2 / "CLAUDE.md").write_text(orig_md)
+    (work2 / ".mcp.json").write_text(orig_mcp)
+    (work2 / "SESSION.md").write_text("세션\n")
+    assert _overlay(tmp_path, work2).returncode == 0
+    _token_files(work2)
+    assert _pair(tmp_path, work2).returncode == 0
+    r = run(tmp_path, "install", "--work-dir", str(work2), "--phase", "delegate", "--autostart")
+    assert r.returncode == 0, r.stdout + r.stderr
+    r = run(tmp_path, "remove", "--work-dir", str(work2))
+    assert r.returncode == 0, r.stdout + r.stderr
+    # diff 0: 설치 전 존재하던 파일은 원문 동일
+    assert (work2 / "CLAUDE.md").read_text() == orig_md
+    mcp = json.loads((work2 / ".mcp.json").read_text())
+    assert "mine" in mcp["mcpServers"] and "codex" not in mcp["mcpServers"]
+    assert (work2 / "SESSION.md").read_text() == "세션\n"
+    # 설치기가 만든 것은 제거
+    assert not (work2 / "scripts/bot-up.sh").exists()
+    assert not (work2 / ".env.example").exists()
+    assert not (tmp_path / "Library/LaunchAgents/com.discord-harness.chat-claude.plist").exists()
+    assert not (tmp_path / ".local/share/discord-harness/repos").exists()
+    assert not (tmp_path / ".config/discord-harness/state.json").exists()
+    # 사용자 데이터·비밀 보존
+    assert (work2 / ".env").exists()
+    assert (work2 / ".discord-state/.env").exists()
+    assert (work2 / "chat/.discord-state/.env").exists()
+
+def test_remove_preserves_user_modified_overlay(tmp_path):
+    base, work = _installed(tmp_path)
+    (work / "scripts/post-as.sh").write_text("#!/bin/bash\n# 사용자 수정\n")
+    r = run(tmp_path, "remove", "--work-dir", str(work))
+    assert r.returncode == 0
+    assert (work / "scripts/post-as.sh").exists()
+    assert "[WARN]" in r.stdout and "post-as.sh" in r.stdout
+
+def test_engine_source_never_mentions_bootout():
+    assert "bootout" not in HARNESSCTL.read_text()

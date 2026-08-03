@@ -450,6 +450,47 @@ def cmd_doctor(a) -> None:
             rep("OK" if alive else "WARN", f"tmux 세션 {sess} {'생존' if alive else '없음'}")
     sys.exit(1 if fails else 0)
 
+def cmd_remove(a) -> None:
+    st = load_state()
+    work = resolve_work_dir(a)
+    tmux = find_tmux()
+    for sess in ("orchestrator", CHAT_SESSION):
+        subprocess.run([tmux, "kill-session", "-t", sess], capture_output=True)
+    for p in (home() / f"Library/LaunchAgents/{ORCH_PLIST_LABEL}.plist", chat_plist_path()):
+        if p.exists():
+            p.unlink()
+            print(f"plist 제거: {p}")
+    for script, cwd in ((bridge_repo() / "scripts/uninstall.sh", bridge_repo()),
+                        (coach_repo() / "scripts/uninstall.sh", coach_repo())):
+        if script.exists():
+            subprocess.run(["bash", str(script)], cwd=cwd)
+        else:
+            print(f"[WARN] 제거 스크립트 없음(수동 확인 필요): {script}")
+    for rel, saved in sorted(st.get("overlay", {}).items()):
+        p = work / rel
+        if not p.exists():
+            continue
+        if sha256(p) == saved:
+            p.unlink()
+            print(f"제거: {p}")
+        else:
+            print(f"[WARN] 사용자 수정 감지 — 보존: {p}")
+    for line in remove_claude_block(work / "CLAUDE.md"):
+        print(line)
+    mcp_path = work / ".mcp.json"
+    if st.get("mcp_added") and mcp_path.exists():
+        cur = json.loads(mcp_path.read_text())
+        for k in st["mcp_added"]:
+            cur.get("mcpServers", {}).pop(k, None)
+        mcp_path.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
+        print(f".mcp.json 항목 제거: {st['mcp_added']}")
+    if repos_dir().exists():
+        shutil.rmtree(repos_dir())
+        print(f"소스 저장소 제거: {repos_dir()}")
+    if state_path().exists():
+        state_path().unlink()
+    print("제거 완료 — 보존: .env·.discord-state·chat/(사용자 수정분)·tasks/·SESSION.md·~/.config/usage-coach/")
+
 def cmd_verify(a) -> None:
     work = resolve_work_dir(a)
     fails = 0
@@ -568,6 +609,9 @@ def main() -> None:
     dp = sub.add_parser("doctor", help="종합 점검 + 버전 호환 + 위임 계약 방어(읽기 전용)")
     dp.add_argument("--work-dir")
     dp.set_defaults(fn=cmd_doctor)
+    xp = sub.add_parser("remove", help="설치기가 만든 것만 제거(diff 0, 사용자 데이터 보존)")
+    xp.add_argument("--work-dir")
+    xp.set_defaults(fn=cmd_remove)
     a = p.parse_args()
     a.fn(a)
 
