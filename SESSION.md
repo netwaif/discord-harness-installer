@@ -13,15 +13,16 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-Task 6 완료(fetch 서브커맨드 구현). 테스트 6/6 PASS. 커밋: c60730b.
-다음 세션: Task 7부터 진행.
+구현 플랜 완성(`docs/superpowers/plans/2026-08-04-harness-installer.md`) 후
+subagent-driven-development로 실행 중. Task 1~9 완료(상류 3건 포함), Task 10부터 남음.
+진행 정본: `.superpowers/sdd/2026-08-04-harness-installer/progress.md`
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. Task 7: plugins (마켓플레이스 플러그인 설치 & 검증)
-2. Task 8: pair (작업 폴더 + 역할 매핑 쓰기)
-3. 이후 Task 9–13 순차
+1. SDD 실행 계속 — Task 10(install --phase delegate)부터 Task 14까지, 레저(progress.md) 기준 재개
+2. Task 15 릴리즈 게이트는 사용자 게이트(상류 태깅·별도 macOS 계정 E2E·코덱스 스모크)
+3. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
 
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
