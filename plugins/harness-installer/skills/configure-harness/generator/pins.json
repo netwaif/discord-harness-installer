@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "repos": {
+    "discord-multiagent": "v0.0.0-pre",
+    "codex-discord": "v0.0.0-pre",
+    "usage-coach": "v0.0.0-pre"
+  },
+  "plugins": {
+    "multi-agent-starter": "3.5.0",
+    "folder-bot": "0.1.0"
+  }
+}
