@@ -1,5 +1,6 @@
 import json, os, plistlib, re, subprocess, sys
 from pathlib import Path
+import pytest
 
 HARNESSCTL = (Path(__file__).parent.parent
               / "plugins/harness-installer/skills/configure-harness/generator/harnessctl.py")
@@ -292,3 +293,32 @@ def test_delegate_real_run_writes_chat_plist(tmp_path):
     assert f"cd {work}/chat" in cmd
     assert f"DISCORD_STATE_DIR={work}/chat/.discord-state" in cmd
     assert "scripts/bot-up.sh" in cmd and "--channels plugin:discord@claude-plugins-official" in cmd
+
+def _mcp_log(tmp_path, workdir, line):
+    mangled = re.sub(r"[/.]", "-", str(workdir))
+    d = tmp_path / "Library/Caches/claude-cli-nodejs" / mangled / "mcp-logs-plugin-discord-discord"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "2026-08-04.jsonl").write_text(json.dumps({"msg": line}) + "\n")
+
+def test_verify_ok_with_fixture_logs(tmp_path):
+    base, work = _installed(tmp_path)
+    bridge = tmp_path / ".local/share/discord-harness/repos/codex-discord"
+    run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--dry-run")
+    _mcp_log(tmp_path, work, "Successfully connected to Discord")
+    _mcp_log(tmp_path, work / "chat", "Successfully connected to Discord")
+    (bridge / "logs").mkdir(exist_ok=True)
+    (bridge / "logs/daemon.log").write_text("로그인: codex#1 / 엔진 codex\n")
+    (bridge / "logs/daemon-gemini.log").write_text("로그인: gem#1 / 엔진 agy\n")
+    (bridge / "data").mkdir(exist_ok=True)
+    (bridge / "data/daemon.pid").write_text(str(os.getpid()))
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "[OK] 오케스트레이터" in r.stdout and "[OK] 수다 클로드" in r.stdout
+    assert "[OK] 코덱스" in r.stdout and "[OK] 제미나이" in r.stdout
+
+def test_verify_connection_failed_is_fail(tmp_path):
+    base, work = _installed(tmp_path)
+    _mcp_log(tmp_path, work, "Connection failed: invalid token")
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook")
+    assert r.returncode == 1
+    assert "[FAIL] 오케스트레이터" in r.stdout

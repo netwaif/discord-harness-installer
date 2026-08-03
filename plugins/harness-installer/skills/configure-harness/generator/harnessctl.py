@@ -357,6 +357,81 @@ def delegate(argv: list, cwd: Path, dry: bool, log_hint: str) -> None:
         sys.exit(f"오류: 위임 스크립트 실패(exit {r.returncode}) — {line}\n"
                  f"로그: {log_hint}\n다음 행동: 원인 해결 후 install 재실행(멱등)")
 
+def mcp_log_dir(workdir: Path) -> Path:
+    mangled = re.sub(r"[/.]", "-", str(workdir))
+    return home() / "Library/Caches/claude-cli-nodejs" / mangled / "mcp-logs-plugin-discord-discord"
+
+def judge_mcp(workdir: Path):
+    d = mcp_log_dir(workdir)
+    files = sorted(d.glob("*.jsonl")) if d.is_dir() else []
+    text = "".join(f.read_text(errors="ignore") for f in files)
+    if "Successfully connected" in text:
+        return "OK", "MCP 연결 성공"
+    if "Connection failed" in text:
+        return "FAIL", "MCP 연결 실패 — 토큰 오입력·인텐트 미설정·초대 누락 확인"
+    return "WARN", f"판정 로그 없음(미기동?): {d}"
+
+def judge_bridge(logname: str):
+    p = bridge_repo() / "logs" / logname
+    if p.exists() and "로그인:" in p.read_text(errors="ignore"):
+        return "OK", f"브리지 로그인 확인({logname})"
+    return "FAIL", f"브리지 로그인 없음 — {p} 확인"
+
+def cmd_verify(a) -> None:
+    work = resolve_work_dir(a)
+    fails = 0
+    def rep(level, msg):
+        nonlocal fails
+        if level == "FAIL":
+            fails += 1
+        print(f"[{level}] {msg}")
+    for label, wd in (("오케스트레이터", work), ("수다 클로드", work / "chat")):
+        lvl, msg = judge_mcp(wd)
+        rep(lvl, f"{label}: {msg}")
+    bridge_specs = [("코덱스", "daemon.log", "data/daemon.pid")]
+    if (bridge_repo() / ".env.gemini").exists():
+        bridge_specs.append(("제미나이", "daemon-gemini.log", "data-gemini/daemon.pid"))
+    else:
+        rep("WARN", "제미나이: 브리지 .env.gemini 없음 — 미구성으로 건너뜀")
+    for label, logname, pidrel in bridge_specs:
+        lvl, msg = judge_bridge(logname)
+        rep(lvl, f"{label}: {msg}")
+        pid_p = bridge_repo() / pidrel
+        alive = False
+        if pid_p.exists():
+            try:
+                os.kill(int(pid_p.read_text().split()[0]), 0)
+                alive = True
+            except (ValueError, ProcessLookupError, PermissionError):
+                pass
+        rep("OK" if alive else "WARN",
+            f"{label} 데몬 {'생존' if alive else '죽음/미기동'}: {pid_p}")
+    for sess in ("orchestrator", CHAT_SESSION):
+        alive = subprocess.run([find_tmux(), "has-session", "-t", sess],
+                               capture_output=True).returncode == 0
+        rep("OK" if alive else "WARN", f"tmux 세션 {sess} {'생존' if alive else '없음'}")
+    for label, p in ((ORCH_PLIST_LABEL, home() / f"Library/LaunchAgents/{ORCH_PLIST_LABEL}.plist"),
+                     (CHAT_PLIST_LABEL, chat_plist_path())):
+        rep("OK" if p.exists() else "WARN", f"plist {label}: {'있음' if p.exists() else '없음'}")
+    if not a.skip_webhook:
+        cfg = home() / ".config/usage-coach/discord.json"
+        if not cfg.exists():
+            rep("WARN", f"웹훅 설정 없음: {cfg}")
+        else:
+            import urllib.request
+            url = json.loads(cfg.read_text()).get("webhook_url", "")
+            try:
+                req = urllib.request.Request(
+                    url, data=json.dumps({"content": "harness-installer verify: 웹훅 OK"}).encode(),
+                    headers={"Content-Type": "application/json"})
+                urllib.request.urlopen(req, timeout=10)
+                rep("OK", "웹훅 시험 발사 성공")
+            except Exception as e:
+                rep("FAIL", f"웹훅 발사 실패: {e}")
+    if not fails:
+        st = load_state(); st["steps"]["verify"] = now(); save_state(st)
+    sys.exit(1 if fails else 0)
+
 def cmd_install(a) -> None:
     st = load_state()
     work = Path(a.work_dir).expanduser() if a.work_dir else resolve_work_dir(a)
@@ -413,6 +488,10 @@ def main() -> None:
     ip.add_argument("--autostart", action="store_true")
     ip.add_argument("--dry-run", action="store_true")
     ip.set_defaults(fn=cmd_install)
+    vp = sub.add_parser("verify", help="기동 후 연결 판정(판정 소스 2종, 읽기 전용)")
+    vp.add_argument("--work-dir")
+    vp.add_argument("--skip-webhook", action="store_true")
+    vp.set_defaults(fn=cmd_verify)
     a = p.parse_args()
     a.fn(a)
 
