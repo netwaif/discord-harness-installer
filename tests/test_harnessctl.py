@@ -1,4 +1,5 @@
-import json, os, plistlib, re, subprocess, sys
+import json, os, plistlib, re, shutil, subprocess, sys, threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import pytest
 
@@ -98,8 +99,17 @@ def test_preflight_reports_tools(tmp_path):
 def test_preflight_ok_when_all_present(tmp_path):
     (tmp_path / ".claude/plugins/cache/claude-plugins-official/discord").mkdir(parents=True)
     r = run(tmp_path, "preflight")
-    # 개발 머신 전제: git/tmux/node/claude/codex 는 PATH 에 있다
+    # 개발 머신 전제: git/tmux/node/bun/claude/codex 는 PATH 에 있다
     assert r.returncode == 0, r.stdout + r.stderr
+
+def test_preflight_fails_without_bun(tmp_path):
+    # discord 플러그인 MCP 실행기(bun) 부재는 8단계가 아니라 1단계에서 잡혀야 한다
+    (tmp_path / ".claude/plugins/cache/claude-plugins-official/discord").mkdir(parents=True)
+    bun_dir = os.path.dirname(shutil.which("bun"))
+    path = ":".join(p for p in os.environ["PATH"].split(":") if p != bun_dir)
+    r = run(tmp_path, "preflight", env_extra={"PATH": path})
+    assert r.returncode == 1
+    assert "[FAIL] bun" in r.stdout and "bun.sh/install" in r.stdout
 
 def test_fetch_checks_out_pin_and_records(tmp_path):
     fetched(tmp_path)
@@ -265,6 +275,58 @@ def test_overlay_append_lines_merges_gitignore_and_reverts_on_remove(tmp_path):
     assert r3.returncode == 0, r3.stdout + r3.stderr
     assert (work / ".gitignore").read_text() == original
 
+def test_overlay_writes_bot_settings_with_merge(tmp_path):
+    # 무인 봇 전제: discord reply·MCP 서버 사전 승인이 오케·수다 양쪽에 기록된다
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    user_settings = {"permissions": {"allow": ["Bash(ls:*)"]}}
+    (work / ".claude").mkdir()
+    (work / ".claude/settings.local.json").write_text(json.dumps(user_settings))
+    r = _overlay(tmp_path, work)
+    assert r.returncode == 0, r.stdout + r.stderr
+    for rel in (".claude/settings.local.json", "chat/.claude/settings.local.json"):
+        cfg = json.loads((work / rel).read_text())
+        assert cfg["enableAllProjectMcpServers"] is True
+        assert "mcp__plugin_discord_discord" in cfg["permissions"]["allow"]
+        assert "mcp__plugin_discord_discord__reply" in cfg["permissions"]["allow"]
+    # 기존 사용자 항목 보존(병합)
+    orch = json.loads((work / ".claude/settings.local.json").read_text())
+    assert "Bash(ls:*)" in orch["permissions"]["allow"]
+    st = json.loads((tmp_path / ".config/discord-harness/state.json").read_text())
+    assert st["settings_added"][".claude/settings.local.json"]["created"] is False
+    assert st["settings_added"]["chat/.claude/settings.local.json"]["created"] is True
+
+def test_remove_reverts_bot_settings(tmp_path):
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    (work / ".claude").mkdir()
+    (work / ".claude/settings.local.json").write_text(
+        json.dumps({"permissions": {"allow": ["Bash(ls:*)"]}}))
+    assert _overlay(tmp_path, work).returncode == 0
+    _token_files(work)
+    assert _pair(tmp_path, work).returncode == 0
+    r = run(tmp_path, "remove", "--work-dir", str(work))
+    assert r.returncode == 0, r.stdout + r.stderr
+    # 사용자 파일: 설치기 추가분만 회수, 사용자 항목 보존
+    orch = json.loads((work / ".claude/settings.local.json").read_text())
+    assert orch["permissions"]["allow"] == ["Bash(ls:*)"]
+    assert "enableAllProjectMcpServers" not in orch
+    # 설치기가 만든 파일: 통째 제거
+    assert not (work / "chat/.claude/settings.local.json").exists()
+
+def test_remove_keeps_state_on_warn_then_resumes(tmp_path):
+    # 부분 실패 시 state 를 보존해야 2차 remove 가 이어서 제거할 수 있다
+    base, work = _installed(tmp_path)
+    (work / "scripts/post-as.sh").write_text("#!/bin/bash\n# 사용자 수정\n")
+    r = run(tmp_path, "remove", "--work-dir", str(work))
+    assert r.returncode == 0
+    assert "재실행하면 이어서" in r.stdout
+    state = tmp_path / ".config/discord-harness/state.json"
+    assert state.exists()
+    r2 = run(tmp_path, "remove")           # state 가 work_dir 를 기억한다
+    assert r2.returncode == 0, r2.stdout + r2.stderr
+    assert (work / "scripts/post-as.sh").exists()   # 사용자 수정분은 계속 보존
+
 def test_overlay_without_fetch_fails_with_hint(tmp_path):
     work = tmp_path / "work"; work.mkdir()
     r = _overlay(tmp_path, work)
@@ -343,6 +405,36 @@ def test_verify_ok_with_fixture_logs(tmp_path):
     assert r.returncode == 0, r.stdout + r.stderr
     assert "[OK] 오케스트레이터" in r.stdout and "[OK] 수다 클로드" in r.stdout
     assert "[OK] 코덱스" in r.stdout and "[OK] 제미나이" in r.stdout
+
+def test_verify_webhook_probe_sends_user_agent(tmp_path):
+    # UA 없는 프로브는 Cloudflare(1010)에 차단돼 오탐 FAIL 을 낸다 — 실측 회귀
+    base, work = _installed(tmp_path)
+    _mcp_log(tmp_path, work, "Successfully connected to Discord")
+    _mcp_log(tmp_path, work / "chat", "Successfully connected to Discord")
+    bridge = tmp_path / ".local/share/discord-harness/repos/codex-discord"
+    (bridge / "logs").mkdir(exist_ok=True)
+    (bridge / "logs/daemon.log").write_text("로그인: codex#1 / 엔진 codex\n")
+    (bridge / "data").mkdir(exist_ok=True)
+    (bridge / "data/daemon.pid").write_text(str(os.getpid()))
+    seen = {}
+    class Probe(BaseHTTPRequestHandler):
+        def do_POST(self):
+            seen["ua"] = self.headers.get("User-Agent")
+            self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            self.send_response(204); self.end_headers()
+        def log_message(self, *a): pass
+    srv = HTTPServer(("127.0.0.1", 0), Probe)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    cfg = tmp_path / ".config/usage-coach"
+    cfg.mkdir(parents=True, exist_ok=True)
+    (cfg / "discord.json").write_text(json.dumps(
+        {"webhook_url": f"http://127.0.0.1:{srv.server_port}/hook"}))
+    try:
+        r = run(tmp_path, "verify", "--work-dir", str(work))
+    finally:
+        srv.shutdown()
+    assert "[OK] 웹훅 시험 발사 성공" in r.stdout, r.stdout + r.stderr
+    assert seen["ua"] == "usage-coach-dash"
 
 def test_verify_connection_failed_is_fail(tmp_path):
     base, work = _installed(tmp_path)

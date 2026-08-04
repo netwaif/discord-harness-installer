@@ -95,6 +95,13 @@ python3 <이 스킬 폴더>/generator/harnessctl.py plugins
 출력하는 수동 폴백(`/plugin marketplace add …` 을 대상 호스트 대화에서 직접
 실행)을 안내하고, 사용자가 마치면 재실행한다(멱등).
 
+### 5.5 플러그인 리로드 (필수)
+
+사용자에게 `/reload-plugins` 실행을 요청하고 완료를 기다린다(슬래시 명령은
+사용자만 실행할 수 있다). 방금 설치한 플러그인의 스킬은 실행 중인 세션에
+자동 반영되지 않으므로, 이 단계를 건너뛰면 6단계가
+`Error: Unknown skill: multi-agent-starter:configure-multiagent` 로 막힌다.
+
 ### 6. 멀티에이전트 시스템 설치 + 디스코드 층
 
 먼저 multi-agent-starter 플러그인의 `configure-multiagent` 스킬을 설치 루트
@@ -173,7 +180,9 @@ python3 <이 스킬 폴더>/generator/harnessctl.py remove --work-dir <설치 �
 ```
 
 엔진이 tmux 세션·plist·위임 설치분(브리지·대시보드)·오버레이 파일(해시 일치
-분만)·CLAUDE.md 마커 블록·`.mcp.json` 추가 항목·소스 저장소를 제거한다.
+분만)·CLAUDE.md 마커 블록·`.mcp.json` 추가 항목·봇 권한 사전 승인
+(`settings.local.json` 추가분)·소스 저장소를 제거한다. 일부 항목이 `[WARN]`
+으로 남으면 상태 파일을 보존하고 재실행 시 이어서 제거한다.
 **보존되는 것**을 그대로 안내한다: `.env` · `.discord-state` · `chat/`(사용자
 수정분) · `tasks/` · `SESSION.md` · `~/.config/usage-coach/`. 사용자가 수정한
 오버레이 파일은 해시 불일치로 자동 보존되며 엔진이 `[WARN]`으로 표시한다.

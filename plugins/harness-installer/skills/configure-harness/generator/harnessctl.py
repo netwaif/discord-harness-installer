@@ -90,6 +90,7 @@ def cmd_preflight(a) -> None:
             ("git", "FAIL", "xcode-select --install"),
             ("tmux", "FAIL", "brew install tmux"),
             ("node", "FAIL", "brew install node (브리지는 Node 22+)"),
+            ("bun", "FAIL", "curl -fsSL https://bun.sh/install | bash (discord 플러그인 MCP 실행기)"),
             ("claude", "FAIL", "https://claude.com/claude-code 설치"),
             ("codex", "FAIL", "npm i -g @openai/codex (수다 브리지 필수)"),
             ("agy", "WARN", "없으면 제미나이 봇만 빠짐")):
@@ -345,6 +346,37 @@ def write_bridge_envs(work: Path) -> list[str]:
         out.append(f"브리지 환경 조립: {p}")
     return out
 
+BOT_SETTINGS_ALLOW = ["mcp__plugin_discord_discord", "mcp__plugin_discord_discord__reply"]
+
+def write_bot_settings(work: Path, st: dict) -> list[str]:
+    """무인 봇 전제 조건: discord reply 도구·MCP 서버를 설치 시점에 사전 승인.
+
+    오케(<work>)·수다(<work>/chat) 양쪽 .claude/settings.local.json 에
+    병합 기록하고, 추가분만 state 에 남겨 remove 가 회수한다."""
+    out = []
+    rec = st.setdefault("settings_added", {})
+    for d in (work, work / "chat"):
+        p = d / ".claude/settings.local.json"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        created = not p.exists()
+        cur = {} if created else json.loads(p.read_text())
+        entry = {"created": created, "allow": [], "eams": False}
+        if not cur.get("enableAllProjectMcpServers"):
+            cur["enableAllProjectMcpServers"] = True
+            entry["eams"] = True
+        allow = cur.setdefault("permissions", {}).setdefault("allow", [])
+        for perm in BOT_SETTINGS_ALLOW:
+            if perm not in allow:
+                allow.append(perm)
+                entry["allow"].append(perm)
+        rel = str(p.relative_to(work))
+        if entry["allow"] or entry["eams"]:
+            p.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
+            if rel not in rec:
+                rec[rel] = entry
+            out.append(f"봇 권한 사전 승인: {p} (discord reply + MCP 서버)")
+    return out
+
 def build_chat_cmd(work: Path) -> str:
     chat = work / "chat"
     path_esc = os.environ.get("PATH", "").replace("&", "&amp;")
@@ -466,6 +498,11 @@ def cmd_doctor(a) -> None:
 def cmd_remove(a) -> None:
     st = load_state()
     work = resolve_work_dir(a)
+    warns = 0
+    def warn(msg):
+        nonlocal warns
+        warns += 1
+        print(f"[WARN] {msg}")
     tmux = find_tmux()
     for sess in ("orchestrator", CHAT_SESSION):
         subprocess.run([tmux, "kill-session", "-t", sess], capture_output=True)
@@ -478,9 +515,9 @@ def cmd_remove(a) -> None:
         if script.exists():
             r = subprocess.run(["bash", str(script)], cwd=cwd)
             if r.returncode != 0:
-                print(f"[WARN] 제거 스크립트 실패(exit {r.returncode}): {script} — 수동 확인 필요")
+                warn(f"제거 스크립트 실패(exit {r.returncode}): {script} — 수동 확인 필요")
         else:
-            print(f"[WARN] 제거 스크립트 없음(수동 확인 필요): {script}")
+            warn(f"제거 스크립트 없음(수동 확인 필요): {script}")
     for rel, saved in sorted(st.get("overlay", {}).items()):
         p = work / rel
         if not p.exists():
@@ -489,7 +526,36 @@ def cmd_remove(a) -> None:
             p.unlink()
             print(f"제거: {p}")
         else:
-            print(f"[WARN] 사용자 수정 감지 — 보존: {p}")
+            warn(f"사용자 수정 감지 — 보존: {p}")
+    for rel, entry in sorted(st.get("settings_added", {}).items()):
+        p = work / rel
+        if not p.exists():
+            continue
+        try:
+            cur = json.loads(p.read_text())
+        except ValueError:
+            warn(f"권한 파일 파싱 실패 — 보존: {p}")
+            continue
+        if entry.get("eams"):
+            cur.pop("enableAllProjectMcpServers", None)
+        allow = cur.get("permissions", {}).get("allow", [])
+        for perm in entry.get("allow", []):
+            if perm in allow:
+                allow.remove(perm)
+        if cur.get("permissions", {}).get("allow") == []:
+            cur["permissions"].pop("allow")
+        if cur.get("permissions") == {}:
+            cur.pop("permissions")
+        if entry.get("created") and not cur:
+            p.unlink()
+            try:
+                p.parent.rmdir()
+            except OSError:
+                pass
+            print(f"권한 파일 제거: {p}")
+        else:
+            p.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
+            print(f"권한 사전 승인 회수: {p}")
     for line in remove_claude_block(work / "CLAUDE.md"):
         print(line)
     mcp_path = work / ".mcp.json"
@@ -515,7 +581,9 @@ def cmd_remove(a) -> None:
     if repos_dir().exists():
         shutil.rmtree(repos_dir())
         print(f"소스 저장소 제거: {repos_dir()}")
-    if state_path().exists():
+    if warns:
+        print(f"[WARN] {warns}건 미완 — 상태 보존({state_path()}). 재실행하면 이어서 제거한다")
+    elif state_path().exists():
         state_path().unlink()
     print("제거 완료 — 보존: .env·.discord-state·chat/(사용자 수정분)·tasks/·SESSION.md·~/.config/usage-coach/")
 
@@ -565,7 +633,8 @@ def cmd_verify(a) -> None:
             try:
                 req = urllib.request.Request(
                     url, data=json.dumps({"content": "harness-installer verify: 웹훅 OK"}).encode(),
-                    headers={"Content-Type": "application/json"})
+                    headers={"Content-Type": "application/json",
+                             "User-Agent": "usage-coach-dash"})
                 urllib.request.urlopen(req, timeout=10)
                 rep("OK", "웹훅 시험 발사 성공")
             except Exception as e:
@@ -582,6 +651,7 @@ def cmd_install(a) -> None:
     if a.phase in ("overlay", "all"):
         out += apply_overlay(work, st)
         out += apply_seeds(work, st)
+        out += write_bot_settings(work, st)
     if a.phase in ("delegate", "all"):
         for line in write_bridge_envs(work):
             print(line)
@@ -637,7 +707,7 @@ def main() -> None:
     dp = sub.add_parser("doctor", help="종합 점검 + 버전 호환 + 위임 계약 방어(읽기 전용)")
     dp.add_argument("--work-dir")
     dp.set_defaults(fn=cmd_doctor)
-    xp = sub.add_parser("remove", help="설치기가 만든 것만 제거(diff 0, 사용자 데이터 보존)")
+    xp = sub.add_parser("remove", help="설치기 소유분만 제거(starter·folder-bot 산출물 제외, 사용자 데이터 보존)")
     xp.add_argument("--work-dir")
     xp.set_defaults(fn=cmd_remove)
     a = p.parse_args()
