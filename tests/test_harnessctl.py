@@ -199,6 +199,12 @@ def test_pair_webhook_file(tmp_path):
     cfg = json.loads((tmp_path / ".config/usage-coach/discord.json").read_text())
     assert cfg["webhook_url"] == "https://example.invalid/hook"
     assert not wf.exists()
+    # 대시보드 "봇 세션" 카드가 이 설치를 가리켜야 한다 (기본값 = 저자 프로덕션 경로)
+    repos = str(tmp_path / ".local/share/discord-harness/repos/codex-discord")
+    assert cfg["bridges"][0]["dir"] == f"{repos}/data"
+    assert cfg["bridges"][1]["env"] == f"{repos}/.env.gemini"
+    assert cfg["claude_bots"][0]["cwd"] == str(work)
+    assert cfg["claude_bots"][1]["cwd"] == str(work / "chat")
 
 def test_pair_missing_token_file_names_it(tmp_path):
     work = tmp_path / "work"; work.mkdir()
@@ -363,6 +369,8 @@ def test_delegate_assembles_bridge_envs(tmp_path):
     assert "DISCORD_TOKEN=tok-codex" in env and "ALLOWED_USER_IDS=999" in env
     assert f"CODEX_WORKDIR={work}/chat" in env and "CHANNEL_IDS=222" in env
     assert "TRIGGER_NAME=코덱스" in env
+    # 코덱스는 프로덕션 실측과 동일하게 TUI 모드 — tmux 세션이 보여야 한다
+    assert "TUI_PANE=codex-live:0.0" in env and "TUI_CHANNEL_ID=222" in env
     gem = (bridge / ".env.gemini").read_text()
     assert "DISCORD_TOKEN=tok-gemini" in gem and "ENGINE=agy" in gem
     assert "DATA_DIR=data-gemini" in gem and "TRIGGER_NAME=제미나이" in gem
@@ -442,6 +450,20 @@ def test_verify_connection_failed_is_fail(tmp_path):
     r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook")
     assert r.returncode == 1
     assert "[FAIL] 오케스트레이터" in r.stdout
+
+def test_verify_fails_on_stale_mcp_log(tmp_path):
+    # MCP가 아예 안 뜨면 로그 파일이 안 생긴다 — 이전 기동의 '성공' 로그가
+    # 합격으로 오판되면 안 된다 (2026-08-05 실측)
+    base, work = _installed(tmp_path)
+    _mcp_log(tmp_path, work, "Successfully connected to Discord")
+    log_dir = (tmp_path / "Library/Caches/claude-cli-nodejs"
+               / re.sub(r"[/.]", "-", str(work)) / "mcp-logs-plugin-discord-discord")
+    old = next(log_dir.glob("*.jsonl"))
+    os.utime(old, (1000000, 1000000))            # 설치 이전으로 되돌림
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook")
+    assert r.returncode == 1
+    assert "[FAIL] 오케스트레이터" in r.stdout and "미기동" in r.stdout
+    assert "bot-restart.sh" in r.stdout
 
 def test_doctor_warns_on_pin_mismatch(tmp_path):
     fetched(tmp_path)

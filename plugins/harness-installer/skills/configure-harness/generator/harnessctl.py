@@ -211,6 +211,18 @@ def cmd_pair(a) -> None:
         cfg_path = uc / "discord.json"
         cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
         cfg["webhook_url"] = wf.read_text().strip()
+        # 대시보드 "봇 세션" 카드가 이 설치를 가리키게 한다 — 기본값은 정본 저자의
+        # 프로덕션 절대경로라 다른 계정에서는 전부 "브리지 꺼짐"으로 보인다
+        cfg["bridges"] = [
+            {"name": "Codex", "kind": "codex",
+             "dir": str(bridge_repo() / "data"), "env": str(bridge_repo() / ".env")},
+            {"name": "Gemini", "kind": "agy",
+             "dir": str(bridge_repo() / "data-gemini"), "env": str(bridge_repo() / ".env.gemini")},
+        ]
+        cfg["claude_bots"] = [
+            {"name": "Claude", "kind": "claude", "cwd": str(work)},
+            {"name": "Claude", "kind": "claude", "cwd": str(work / "chat")},
+        ]
         cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
         cfg_path.chmod(0o600)
         wf.unlink()
@@ -327,7 +339,10 @@ def write_bridge_envs(work: Path) -> list[str]:
     chat = work / "chat"
     chat.mkdir(exist_ok=True)
     out = []
-    plans = [(".env", env["CODEX_BOT_TOKEN"], "코덱스", []),
+    plans = [(".env", env["CODEX_BOT_TOKEN"], "코덱스",
+              # 프로덕션 실측과 동일하게 코덱스는 TUI 모드 — tmux 세션(codex-live)에서
+              # 작업 과정을 볼 수 있다. 수다 채널 = TUI 채널
+              ["TUI_PANE=codex-live:0.0", f"TUI_CHANNEL_ID={env['CHAT_CHANNEL_ID']}"]),
              (".env.gemini", env["GEMINI_BOT_TOKEN"], "제미나이",
               ["ENGINE=agy", "DATA_DIR=data-gemini",
                f"AGY_BIN={shutil.which('agy') or 'agy'}"])]
@@ -417,10 +432,21 @@ def mcp_log_dir(workdir: Path) -> Path:
     mangled = re.sub(r"[/.]", "-", str(workdir))
     return home() / "Library/Caches/claude-cli-nodejs" / mangled / "mcp-logs-plugin-discord-discord"
 
-def judge_mcp(workdir: Path):
+def judge_mcp(workdir: Path, since: float = None):
+    """MCP 연결 판정 — since(설치 시각) 이전 로그는 무시하고 최신 파일만 본다.
+
+    2026-08-05 실측: MCP 서버가 아예 안 뜨면 로그 파일 자체가 안 생기는데,
+    이전 기동의 낡은 '성공' 로그가 남아 있으면 합격으로 오판한다."""
     d = mcp_log_dir(workdir)
-    files = sorted(d.glob("*.jsonl")) if d.is_dir() else []
-    text = "".join(f.read_text(errors="ignore") for f in files)
+    files = sorted(d.glob("*.jsonl"), key=lambda f: f.stat().st_mtime) if d.is_dir() else []
+    if since is not None:
+        files = [f for f in files if f.stat().st_mtime >= since]
+        if not files:
+            return "FAIL", ("설치 이후 MCP 로그 없음 — MCP 미기동. "
+                            "scripts/bot-restart.sh 로 재기동 후 verify 재실행")
+    if not files:
+        return "WARN", f"판정 로그 없음(미기동?): {d}"
+    text = files[-1].read_text(errors="ignore")
     if "Successfully connected" in text:
         return "OK", "MCP 연결 성공"
     if "Connection failed" in text:
@@ -595,8 +621,14 @@ def cmd_verify(a) -> None:
         if level == "FAIL":
             fails += 1
         print(f"[{level}] {msg}")
+    steps = load_state().get("steps", {})
+    since = None
+    for key in ("pair", "install-delegate"):
+        if steps.get(key):
+            ts = datetime.fromisoformat(steps[key]).timestamp()
+            since = ts if since is None else max(since, ts)
     for label, wd in (("오케스트레이터", work), ("수다 클로드", work / "chat")):
-        lvl, msg = judge_mcp(wd)
+        lvl, msg = judge_mcp(wd, since)
         rep(lvl, f"{label}: {msg}")
     bridge_specs = [("코덱스", "daemon.log", "data/daemon.pid")]
     if (bridge_repo() / ".env.gemini").exists():
