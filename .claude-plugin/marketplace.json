@@ -6,7 +6,7 @@
     {
       "name": "harness-installer",
       "description": "\"디스코드 하네스 설치해줘\" — 하네스·수다 브리지·대시보드 설치 전 과정을 한 스킬로. 결정적 엔진(harnessctl)이 정본 3레포를 clone(검증 조합 핀)하고 오버레이·페어링·위임 설치·연결 판정까지. 수동은 디스코드 포탈 단계뿐(스킬이 단계별 안내).",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "source": "./plugins/harness-installer",
       "author": { "name": "netwaif" }
     }

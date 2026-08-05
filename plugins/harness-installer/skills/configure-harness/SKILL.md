@@ -174,7 +174,15 @@ python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 �
 `--wait 600`은 필수다 — bot-up.sh가 봇 기동을 직렬화하므로(락 대기 최대
 300초 + 연결 판정 240초) 기동 직후 바로 판정하면 항상 조기 FAIL이 난다.
 
-결과를 그대로 보고한다. 오케스트레이터/수다 클로드가 "MCP 미기동" 또는
+결과를 그대로 보고한다. "코덱스 TUI" FAIL이면(세션 없음 또는 pane에 codex
+없음 — codex TUI는 죽어도 자동 재기동되지 않는다) 멱등 스크립트로 재기동
+후 verify를 다시 돌린다:
+
+```
+bash <repos>/codex-discord/scripts/tui-up.sh
+```
+
+오케스트레이터/수다 클로드가 "MCP 미기동" 또는
 "서버 프로세스 없음" FAIL이면(첫 기동 경합으로 MCP 서버가 아예 안 뜨는
 경우가 실측됨) 해당 세션을 재기동하고 verify를 다시 돌린다 — **단 1회만**:
 

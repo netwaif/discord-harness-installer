@@ -728,6 +728,21 @@ def cmd_verify(a) -> None:
                 pass
         rep("OK" if alive else "WARN",
             f"{label} 데몬 {'생존' if alive else '죽음/미기동'}: {pid_p}")
+    # 코덱스 TUI 판정 — 세션·pane이 있어도 codex가 죽어 있으면 브리지가 호명을
+    # 거부한다("현재 프로세스가 codex가 아님" — 3차 실측). tui-up.sh 는 멱등.
+    tui_pane = None
+    if (bridge_repo() / ".env").exists():
+        tui_pane = parse_env(bridge_repo() / ".env").get("TUI_PANE")
+    if tui_pane:
+        tui_sess = tui_pane.split(":", 1)[0]
+        procs = session_procs(tui_sess)
+        fix = f"bash {bridge_repo()}/scripts/tui-up.sh 로 재기동 후 verify 재실행"
+        if procs is None:
+            rep("FAIL", f"코덱스 TUI 세션({tui_sess}) 없음 — {fix}")
+        elif any(Path(cmd.split()[0]).name.startswith("codex") for _, cmd in procs):
+            rep("OK", f"코덱스 TUI({tui_pane}) codex 가동")
+        else:
+            rep("FAIL", f"코덱스 TUI pane({tui_pane})에 codex 없음(종료됨) — {fix}")
     for sess in ("orchestrator", CHAT_SESSION):
         procs = session_procs(sess)
         if procs is None:

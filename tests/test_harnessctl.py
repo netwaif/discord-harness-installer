@@ -405,13 +405,15 @@ def _seams(panes, procs):
             "HARNESS_FAKE_PS": "\n".join(f"{p} {pp} {c}" for p, pp, c in procs)}
 
 def _live_bots_seams():
-    """봇 2종 tmux 세션 + claude + 그 자식 discord MCP 서버가 전부 살아 있는 정상 상태"""
+    """봇 2종 tmux 세션 + claude + discord MCP 서버 + codex TUI가 전부 살아 있는 정상 상태"""
     return _seams(
-        {"orchestrator": 100, "chat-claude": 200},
+        {"orchestrator": 100, "chat-claude": 200, "codex-live": 300},
         [(100, 1, "/Users/x/.local/bin/claude --channels plugin:discord@claude-plugins-official"),
          (150, 100, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start"),
          (200, 1, "claude --channels plugin:discord@claude-plugins-official"),
-         (250, 200, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start")])
+         (250, 200, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start"),
+         (300, 1, "zsh"),
+         (310, 300, "/Users/x/.local/bin/codex -s workspace-write -c sandbox_workspace_write.network_access=true")])
 
 def _mcp_log(tmp_path, workdir, line):
     mangled = re.sub(r"[/.]", "-", str(workdir))
@@ -436,6 +438,7 @@ def test_verify_ok_with_fixture_logs(tmp_path):
     assert "[OK] 오케스트레이터" in r.stdout and "[OK] 수다 클로드" in r.stdout
     assert "[OK] 코덱스" in r.stdout and "[OK] 제미나이" in r.stdout
     assert "[OK] tmux 세션 orchestrator claude 가동" in r.stdout
+    assert "[OK] 코덱스 TUI(codex-live:0.0) codex 가동" in r.stdout
 
 def test_verify_webhook_probe_sends_user_agent(tmp_path):
     # UA 없는 프로브는 Cloudflare(1010)에 차단돼 오탐 FAIL 을 낸다 — 실측 회귀
@@ -509,6 +512,23 @@ def test_verify_tmux_session_without_claude_is_warn(tmp_path):
                   (200, 1, "bash scripts/bot-up.sh --channels plugin:discord@claude-plugins-official")])
     r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook", env_extra=env)
     assert "[WARN] tmux 세션 orchestrator: 세션은 있으나 claude 프로세스 없음" in r.stdout
+
+def test_verify_codex_tui_pane_without_codex_is_fail(tmp_path):
+    # 3차 실측: codex-live 세션은 있는데 pane이 zsh(codex 죽음)이면 브리지가 호명을
+    # 거부한다 — verify가 이를 못 보면 11/11 OK 오탐. 복구 경로(tui-up.sh) 안내 필수
+    base, work = _installed(tmp_path)
+    run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--dry-run")
+    _mcp_log(tmp_path, work, "Successfully connected to Discord")
+    _mcp_log(tmp_path, work / "chat", "Successfully connected to Discord")
+    env = _seams({"orchestrator": 100, "chat-claude": 200, "codex-live": 300},
+                 [(100, 1, "claude --channels plugin:discord@claude-plugins-official"),
+                  (150, 100, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start"),
+                  (200, 1, "claude --channels plugin:discord@claude-plugins-official"),
+                  (250, 200, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start"),
+                  (300, 1, "zsh")])          # codex 없음 — pane에 셸만 남음
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook", env_extra=env)
+    assert r.returncode == 1
+    assert "[FAIL] 코덱스 TUI" in r.stdout and "tui-up.sh" in r.stdout
 
 def test_verify_wait_polls_until_timeout(tmp_path):
     # bot-up 직렬화(락 대기 최대 300초+연결 240초) 중 조기 FAIL 방지 — 상한까지 폴링 후 판정
