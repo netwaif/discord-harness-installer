@@ -1,4 +1,4 @@
-import json, os, plistlib, re, shutil, subprocess, sys, threading
+import json, os, plistlib, re, shutil, subprocess, sys, threading, time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import pytest
@@ -392,6 +392,22 @@ def test_delegate_real_run_writes_chat_plist(tmp_path):
     assert f"DISCORD_STATE_DIR={work}/chat/.discord-state" in cmd
     assert "scripts/bot-up.sh" in cmd and "--channels plugin:discord@claude-plugins-official" in cmd
 
+PLUG_CWD = "/tmp/x/.claude/plugins/cache/claude-plugins-official/discord/0.0.4"
+
+def _seams(panes, procs):
+    """프로세스 실존 판정 시임 — HARNESS_FAKE_PANES(세션→pane pid) + HARNESS_FAKE_PS(ps 스냅샷)"""
+    return {"HARNESS_FAKE_PANES": json.dumps(panes),
+            "HARNESS_FAKE_PS": "\n".join(f"{p} {pp} {c}" for p, pp, c in procs)}
+
+def _live_bots_seams():
+    """봇 2종 tmux 세션 + claude + 그 자식 discord MCP 서버가 전부 살아 있는 정상 상태"""
+    return _seams(
+        {"orchestrator": 100, "chat-claude": 200},
+        [(100, 1, "/Users/x/.local/bin/claude --channels plugin:discord@claude-plugins-official"),
+         (150, 100, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start"),
+         (200, 1, "claude --channels plugin:discord@claude-plugins-official"),
+         (250, 200, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start")])
+
 def _mcp_log(tmp_path, workdir, line):
     mangled = re.sub(r"[/.]", "-", str(workdir))
     d = tmp_path / "Library/Caches/claude-cli-nodejs" / mangled / "mcp-logs-plugin-discord-discord"
@@ -409,10 +425,12 @@ def test_verify_ok_with_fixture_logs(tmp_path):
     (bridge / "logs/daemon-gemini.log").write_text("로그인: gem#1 / 엔진 agy\n")
     (bridge / "data").mkdir(exist_ok=True)
     (bridge / "data/daemon.pid").write_text(str(os.getpid()))
-    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook")
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook", "--wait", "5",
+            env_extra=_live_bots_seams())
     assert r.returncode == 0, r.stdout + r.stderr
     assert "[OK] 오케스트레이터" in r.stdout and "[OK] 수다 클로드" in r.stdout
     assert "[OK] 코덱스" in r.stdout and "[OK] 제미나이" in r.stdout
+    assert "[OK] tmux 세션 orchestrator claude 가동" in r.stdout
 
 def test_verify_webhook_probe_sends_user_agent(tmp_path):
     # UA 없는 프로브는 Cloudflare(1010)에 차단돼 오탐 FAIL 을 낸다 — 실측 회귀
@@ -438,7 +456,7 @@ def test_verify_webhook_probe_sends_user_agent(tmp_path):
     (cfg / "discord.json").write_text(json.dumps(
         {"webhook_url": f"http://127.0.0.1:{srv.server_port}/hook"}))
     try:
-        r = run(tmp_path, "verify", "--work-dir", str(work))
+        r = run(tmp_path, "verify", "--work-dir", str(work), env_extra=_live_bots_seams())
     finally:
         srv.shutdown()
     assert "[OK] 웹훅 시험 발사 성공" in r.stdout, r.stdout + r.stderr
@@ -464,6 +482,37 @@ def test_verify_fails_on_stale_mcp_log(tmp_path):
     assert r.returncode == 1
     assert "[FAIL] 오케스트레이터" in r.stdout and "미기동" in r.stdout
     assert "bot-restart.sh" in r.stdout
+
+def test_verify_fresh_log_without_server_process_is_fail(tmp_path):
+    # 2026-08-05 3차 실측: 진단용 `claude mcp list`가 남긴 신선한 성공 로그만으로
+    # 합격 처리되면 안 된다 — 봇 세션 자손에 MCP 서버 프로세스가 실존해야 OK
+    base, work = _installed(tmp_path)
+    _mcp_log(tmp_path, work, "Successfully connected to Discord")
+    _mcp_log(tmp_path, work / "chat", "Successfully connected to Discord")
+    env = _seams({"orchestrator": 100, "chat-claude": 200},
+                 [(100, 1, "claude --channels plugin:discord@claude-plugins-official"),
+                  (200, 1, "claude --channels plugin:discord@claude-plugins-official")])
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook", env_extra=env)
+    assert r.returncode == 1
+    assert "[FAIL] 오케스트레이터" in r.stdout and "프로세스 없음" in r.stdout
+
+def test_verify_tmux_session_without_claude_is_warn(tmp_path):
+    # 락 대기 중 빈 세션이 '생존' OK로 찍히면 오해를 부른다 (3차 실측 #5)
+    base, work = _installed(tmp_path)
+    env = _seams({"orchestrator": 100, "chat-claude": 200},
+                 [(100, 1, "bash scripts/bot-up.sh --channels plugin:discord@claude-plugins-official"),
+                  (200, 1, "bash scripts/bot-up.sh --channels plugin:discord@claude-plugins-official")])
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook", env_extra=env)
+    assert "[WARN] tmux 세션 orchestrator: 세션은 있으나 claude 프로세스 없음" in r.stdout
+
+def test_verify_wait_polls_until_timeout(tmp_path):
+    # bot-up 직렬화(락 대기 최대 300초+연결 240초) 중 조기 FAIL 방지 — 상한까지 폴링 후 판정
+    base, work = _installed(tmp_path)          # MCP 로그 없음 → 끝내 FAIL
+    t0 = time.time()
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook", "--wait", "2",
+            env_extra=_seams({}, []))
+    assert r.returncode == 1
+    assert time.time() - t0 >= 2
 
 def test_doctor_warns_on_pin_mismatch(tmp_path):
     fetched(tmp_path)

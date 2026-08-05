@@ -9,7 +9,7 @@ launchctl로 job을 내리지 않는다(부팅 job은 프로세스 그룹째 킬
 서브커맨드 문자열이 없음을 정적 검증하므로 이 파일에 그 단어를 쓰지 말 것.)
 비밀(토큰·웹훅)은 파일로만 수령하고 stdout에 출력하지 않는다.
 """
-import argparse, hashlib, json, os, plistlib, re, shutil, subprocess, sys
+import argparse, hashlib, json, os, plistlib, re, shutil, subprocess, sys, time
 from datetime import datetime
 from pathlib import Path
 
@@ -453,6 +453,65 @@ def judge_mcp(workdir: Path, since: float = None):
         return "FAIL", "MCP 연결 실패 — 토큰 오입력·인텐트 미설정·초대 누락 확인"
     return "WARN", f"판정 로그 없음(미기동?): {d}"
 
+MCP_PROC_MARK = "claude-plugins-official/discord"
+
+def _process_table():
+    """(pid, ppid, command) 목록 — HARNESS_FAKE_PS 가 있으면 그 스냅샷(테스트 시임)."""
+    fake = os.environ.get("HARNESS_FAKE_PS")
+    if fake is not None:
+        lines = fake.splitlines()
+    else:
+        lines = subprocess.run(["ps", "-axo", "pid=,ppid=,command="],
+                               capture_output=True, text=True).stdout.splitlines()
+    table = []
+    for line in lines:
+        parts = line.split(None, 2)
+        if len(parts) == 3:
+            try:
+                table.append((int(parts[0]), int(parts[1]), parts[2]))
+            except ValueError:
+                pass
+    return table
+
+def _pane_pid(session: str):
+    """tmux 세션 첫 pane 의 pid. 세션 없으면 None. HARNESS_FAKE_PANES 시임 지원."""
+    fake = os.environ.get("HARNESS_FAKE_PANES")
+    if fake is not None:
+        m = json.loads(fake)
+        return int(m[session]) if session in m else None
+    r = subprocess.run([find_tmux(), "list-panes", "-t", session, "-F", "#{pane_pid}"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return None
+    for tok in r.stdout.split():
+        return int(tok)
+    return None
+
+def session_procs(session: str):
+    """tmux 세션 pane 프로세스 트리의 (pid, command) 목록. 세션 없으면 None."""
+    root = _pane_pid(session)
+    if root is None:
+        return None
+    table = _process_table()
+    kids = {}
+    for pid, ppid, _ in table:
+        kids.setdefault(ppid, []).append(pid)
+    ids, todo = {root}, [root]
+    while todo:
+        for c in kids.get(todo.pop(), []):
+            if c not in ids:
+                ids.add(c)
+                todo.append(c)
+    return [(pid, cmd) for pid, ppid, cmd in table if pid in ids]
+
+def mcp_server_alive(session: str) -> bool:
+    """봇 tmux 세션 자손에 discord 플러그인 MCP 서버 프로세스가 실존하는가.
+
+    3차 실측(2026-08-05): 로그 판정만으로는 진단용 `claude mcp list`가 남긴
+    신선한 성공 로그가 거짓 합격을 만든다 — 프로세스 실존을 함께 요구한다."""
+    procs = session_procs(session)
+    return bool(procs) and any(MCP_PROC_MARK in cmd for _, cmd in procs)
+
 def judge_bridge(logname: str):
     p = bridge_repo() / "logs" / logname
     if p.exists() and "로그인:" in p.read_text(errors="ignore"):
@@ -627,8 +686,25 @@ def cmd_verify(a) -> None:
         if steps.get(key):
             ts = datetime.fromisoformat(steps[key]).timestamp()
             since = ts if since is None else max(since, ts)
-    for label, wd in (("오케스트레이터", work), ("수다 클로드", work / "chat")):
+    bots = (("오케스트레이터", "orchestrator", work),
+            ("수다 클로드", CHAT_SESSION, work / "chat"))
+    wait = getattr(a, "wait", 0) or 0
+    if wait:
+        # bot-up.sh 직렬화(락 대기 300초 + 연결 판정 240초) 중 조기 FAIL 방지 —
+        # 두 봇의 로그·프로세스 판정이 모두 OK가 될 때까지 상한 내 폴링
+        print(f"[..] 봇 연결 안정화 대기(최대 {wait}초)")
+        deadline = time.time() + wait
+        while time.time() < deadline:
+            if all(judge_mcp(wd, since)[0] == "OK" and mcp_server_alive(sess)
+                   for _, sess, wd in bots):
+                break
+            time.sleep(min(3, max(0.5, deadline - time.time())))
+    for label, sess, wd in bots:
         lvl, msg = judge_mcp(wd, since)
+        if lvl == "OK" and not mcp_server_alive(sess):
+            lvl, msg = "FAIL", ("성공 로그는 있으나 MCP 서버 프로세스 없음 — 다른 세션"
+                                "(claude mcp list 등)의 로그일 수 있음. "
+                                "scripts/bot-restart.sh 로 재기동 후 verify 재실행")
         rep(lvl, f"{label}: {msg}")
     bridge_specs = [("코덱스", "daemon.log", "data/daemon.pid")]
     if (bridge_repo() / ".env.gemini").exists():
@@ -649,9 +725,14 @@ def cmd_verify(a) -> None:
         rep("OK" if alive else "WARN",
             f"{label} 데몬 {'생존' if alive else '죽음/미기동'}: {pid_p}")
     for sess in ("orchestrator", CHAT_SESSION):
-        alive = subprocess.run([find_tmux(), "has-session", "-t", sess],
-                               capture_output=True).returncode == 0
-        rep("OK" if alive else "WARN", f"tmux 세션 {sess} {'생존' if alive else '없음'}")
+        procs = session_procs(sess)
+        if procs is None:
+            rep("WARN", f"tmux 세션 {sess} 없음")
+        elif any(Path(cmd.split()[0]).name.startswith("claude") for _, cmd in procs):
+            rep("OK", f"tmux 세션 {sess} claude 가동")
+        else:
+            # 세션 존재 ≠ 봇 가동 — bot-up 락 대기 중이면 pane 이 비어 있다 (3차 실측)
+            rep("WARN", f"tmux 세션 {sess}: 세션은 있으나 claude 프로세스 없음(기동 대기/실패)")
     for label, p in ((ORCH_PLIST_LABEL, home() / f"Library/LaunchAgents/{ORCH_PLIST_LABEL}.plist"),
                      (CHAT_PLIST_LABEL, chat_plist_path())):
         rep("OK" if p.exists() else "WARN", f"plist {label}: {'있음' if p.exists() else '없음'}")
@@ -735,6 +816,8 @@ def main() -> None:
     vp = sub.add_parser("verify", help="기동 후 연결 판정(판정 소스 2종, 읽기 전용)")
     vp.add_argument("--work-dir")
     vp.add_argument("--skip-webhook", action="store_true")
+    vp.add_argument("--wait", type=int, default=0,
+                    help="MCP 연결 안정화 대기 상한(초) — bot-up 직렬화 최대 540초 고려")
     vp.set_defaults(fn=cmd_verify)
     dp = sub.add_parser("doctor", help="종합 점검 + 버전 호환 + 위임 계약 방어(읽기 전용)")
     dp.add_argument("--work-dir")

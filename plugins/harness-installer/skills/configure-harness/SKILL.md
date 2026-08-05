@@ -156,16 +156,34 @@ tmux new-session -d -s chat-claude '/bin/zsh -lc "cd <설치 루트>/chat; expor
 ```
 
 ```
-python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 루트>
+python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 루트> --wait 600
 ```
 
-결과를 그대로 보고한다. 오케스트레이터/수다 클로드가 "MCP 미기동" FAIL이면
-(첫 기동 경합으로 MCP 서버가 아예 안 뜨는 경우가 실측됨) 해당 세션을
-재기동하고 verify를 다시 돌린다:
+`--wait 600`은 필수다 — bot-up.sh가 봇 기동을 직렬화하므로(락 대기 최대
+300초 + 연결 판정 240초) 기동 직후 바로 판정하면 항상 조기 FAIL이 난다.
+
+결과를 그대로 보고한다. 오케스트레이터/수다 클로드가 "MCP 미기동" 또는
+"서버 프로세스 없음" FAIL이면(첫 기동 경합으로 MCP 서버가 아예 안 뜨는
+경우가 실측됨) 해당 세션을 재기동하고 verify를 다시 돌린다 — **단 1회만**:
 
 ```
 bash <설치 루트>/scripts/bot-restart.sh orchestrator   # 또는 chat-claude
+python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 루트> --wait 600
 ```
+
+재기동 후에도 같은 FAIL이면 **재기동을 반복하지 않는다**(수렴하지 않는
+경우가 실측됨 — 2026-08-05). 대신 진단 증거를 수집해 보고하고 멈춘다:
+
+1. 프로세스 부재 확인: `ps -axo pid,ppid,command | grep -E "bun run.*discord"
+   | grep -v grep` — 봇 세션 자손에 서버 프로세스가 없으면 spawn 자체가
+   실패하는 상태다.
+2. spawn 오류 캡처: 플러그인 캐시(`~/.claude/plugins/cache/claude-plugins-official/discord/<버전>/.mcp.json`)의
+   `args`를 임시로 `["-c", "exec bun run --cwd <같은 캐시 경로> --shell=bun --silent start 2>>/tmp/discord-mcp-spawn.err"]`,
+   `command`를 `"bash"`로 바꾸고 bot-restart 1회 → `/tmp/discord-mcp-spawn.err`
+   내용 확인 → **파일을 원복**한다.
+3. 위 증거를 사용자에게 보고한다. 이 증상(플러그인 로드 O·환경 O·수동 실행
+   O인데 봇 세션에서만 spawn 실패)은 Claude Code 채널 모드 내부 문제로,
+   설치기 범위 밖이다.
 
 이어서 마무리 안내:
 
