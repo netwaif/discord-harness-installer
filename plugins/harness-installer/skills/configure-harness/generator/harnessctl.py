@@ -336,8 +336,12 @@ def write_bridge_envs(work: Path) -> list[str]:
     if not (work / ".env").exists():
         sys.exit(f"오류: {work / '.env'} 없음 — pair 선행 필요(SKILL 7단계)")
     env = parse_env(work / ".env")
-    chat = work / "chat"
-    chat.mkdir(exist_ok=True)
+    # 작업 폴더는 봇별 분리 — 정본 실측(~/ai-folder/{codex,gemini}-discord-workspace)과
+    # 동일 토폴로지. chat/ 은 수다 클로드 전용(공유 시 동시 파일 작업 충돌)
+    workdirs = {".env": work / "codex-discord-workspace",
+                ".env.gemini": work / "gemini-discord-workspace"}
+    for d in workdirs.values():
+        d.mkdir(exist_ok=True)
     out = []
     plans = [(".env", env["CODEX_BOT_TOKEN"], "코덱스",
               # 프로덕션 실측과 동일하게 코덱스는 TUI 모드 — tmux 세션(codex-live)에서
@@ -352,7 +356,7 @@ def write_bridge_envs(work: Path) -> list[str]:
             continue  # 멱등 — 기존(사용자 수정 포함) 보존
         lines = [f"DISCORD_TOKEN={token}",
                  f"ALLOWED_USER_IDS={env['APPROVER_USER_ID']}",
-                 f"CODEX_WORKDIR={chat}",
+                 f"CODEX_WORKDIR={workdirs[fname]}",
                  f"CHANNEL_IDS={env['CHAT_CHANNEL_ID']}",
                  f"NAME_TRIGGER_CHANNEL_IDS={env['CHAT_CHANNEL_ID']}",
                  f"TRIGGER_NAME={trigger}", *extra]

@@ -367,13 +367,18 @@ def test_delegate_assembles_bridge_envs(tmp_path):
     bridge = tmp_path / ".local/share/discord-harness/repos/codex-discord"
     env = (bridge / ".env").read_text()
     assert "DISCORD_TOKEN=tok-codex" in env and "ALLOWED_USER_IDS=999" in env
-    assert f"CODEX_WORKDIR={work}/chat" in env and "CHANNEL_IDS=222" in env
+    # 작업 폴더는 봇별 분리 — 정본 실측(codex/gemini-discord-workspace). 공유 폴더는
+    # 동시 파일 작업 충돌 위험 + "chat/=수다 클로드 전용" 결정 위반 (2026-08-05 정정)
+    assert f"CODEX_WORKDIR={work}/codex-discord-workspace" in env and "CHANNEL_IDS=222" in env
     assert "TRIGGER_NAME=코덱스" in env
     # 코덱스는 프로덕션 실측과 동일하게 TUI 모드 — tmux 세션이 보여야 한다
     assert "TUI_PANE=codex-live:0.0" in env and "TUI_CHANNEL_ID=222" in env
     gem = (bridge / ".env.gemini").read_text()
     assert "DISCORD_TOKEN=tok-gemini" in gem and "ENGINE=agy" in gem
+    assert f"CODEX_WORKDIR={work}/gemini-discord-workspace" in gem
     assert "DATA_DIR=data-gemini" in gem and "TRIGGER_NAME=제미나이" in gem
+    assert (work / "codex-discord-workspace").is_dir()
+    assert (work / "gemini-discord-workspace").is_dir()
     assert oct((bridge / ".env").stat().st_mode)[-3:] == "600"
     # 멱등 — 재실행해도 기존 .env 보존
     (bridge / ".env").write_text("DISCORD_TOKEN=user-edited\n")
