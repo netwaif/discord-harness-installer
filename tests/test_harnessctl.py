@@ -300,6 +300,9 @@ def test_overlay_writes_bot_settings_with_merge(tmp_path):
         assert cfg["statusLine"]["type"] == "command"
         assert cfg["statusLine"]["command"].endswith(
             "usage-coach/scripts/statusline-command.sh")
+        # 무인 리추얼 전제 — 프로덕션 실측(전역 defaultMode auto)의 폴더 한정 번역.
+        # 미주입 시 "세션 마감하고 재시작해"가 Bash 권한 DM 프롬프트에 걸린다 (8/5 실측)
+        assert cfg["permissions"]["defaultMode"] == "auto"
     # 기존 사용자 항목 보존(병합)
     orch = json.loads((work / ".claude/settings.local.json").read_text())
     assert "Bash(ls:*)" in orch["permissions"]["allow"]
@@ -323,6 +326,7 @@ def test_remove_reverts_bot_settings(tmp_path):
     assert orch["permissions"]["allow"] == ["Bash(ls:*)"]
     assert "enableAllProjectMcpServers" not in orch
     assert "statusLine" not in orch                  # 설치기 주입분 회수
+    assert "defaultMode" not in orch.get("permissions", {})
     # 설치기가 만든 파일: 통째 제거
     assert not (work / "chat/.claude/settings.local.json").exists()
 

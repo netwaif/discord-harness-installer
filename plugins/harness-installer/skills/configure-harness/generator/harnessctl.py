@@ -379,11 +379,20 @@ def write_bot_settings(work: Path, st: dict) -> list[str]:
         p.parent.mkdir(parents=True, exist_ok=True)
         created = not p.exists()
         cur = {} if created else json.loads(p.read_text())
-        entry = {"created": created, "allow": [], "eams": False, "statusline": False}
+        entry = {"created": created, "allow": [], "eams": False,
+                 "statusline": False, "mode": False}
         if not cur.get("enableAllProjectMcpServers"):
             cur["enableAllProjectMcpServers"] = True
             entry["eams"] = True
-        allow = cur.setdefault("permissions", {}).setdefault("allow", [])
+        perms = cur.setdefault("permissions", {})
+        if "defaultMode" not in perms:
+            # 무인 봇 전제의 마지막 조각 — 프로덕션 실측(전역 permissions.defaultMode
+            # "auto")의 폴더 한정 번역. 없으면 재시작 리추얼·오케 위임 Bash가 전부
+            # 권한 DM 프롬프트에 걸려 무인 운영이 성립하지 않는다(2026-08-05 실측).
+            # 사용자가 이미 설정한 defaultMode는 보존.
+            perms["defaultMode"] = "auto"
+            entry["mode"] = True
+        allow = perms.setdefault("allow", [])
         for perm in BOT_SETTINGS_ALLOW:
             if perm not in allow:
                 allow.append(perm)
@@ -397,11 +406,12 @@ def write_bot_settings(work: Path, st: dict) -> list[str]:
                 "command": f"bash {coach_repo()}/scripts/statusline-command.sh"}
             entry["statusline"] = True
         rel = str(p.relative_to(work))
-        if entry["allow"] or entry["eams"] or entry["statusline"]:
+        if entry["allow"] or entry["eams"] or entry["statusline"] or entry["mode"]:
             p.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
             if rel not in rec:
                 rec[rel] = entry
-            out.append(f"봇 권한 사전 승인: {p} (discord reply + MCP 서버 + statusLine)")
+            out.append(f"봇 권한 사전 승인: {p} (discord reply + MCP 서버 + statusLine"
+                       " + 무인 모드)")
     return out
 
 def build_chat_cmd(work: Path) -> str:
@@ -686,6 +696,8 @@ def cmd_remove(a) -> None:
             cur.pop("enableAllProjectMcpServers", None)
         if entry.get("statusline"):
             cur.pop("statusLine", None)
+        if entry.get("mode"):
+            cur.get("permissions", {}).pop("defaultMode", None)
         allow = cur.get("permissions", {}).get("allow", [])
         for perm in entry.get("allow", []):
             if perm in allow:
