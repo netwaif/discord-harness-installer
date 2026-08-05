@@ -561,8 +561,8 @@ def judge_codex_tui():
         return "FAIL", f"코덱스 TUI pane({tui_pane})에 codex 없음(종료됨) — {fix}"
     workdir = env.get("CODEX_WORKDIR")
     if workdir and not _rollout_exists(workdir):
-        return "FAIL", (f"코덱스 세션 롤아웃 없음(cwd={workdir} 일치 파일 부재) — "
-                        f"브리지가 세션을 특정하지 못해 호명이 실패한다. {fix}")
+        return "FAIL", (f"코덱스 TUI({tui_pane}): 세션 롤아웃 없음(cwd={workdir} 일치 "
+                        f"파일 부재) — 브리지가 세션을 특정하지 못해 호명이 실패한다. {fix}")
     return "OK", f"코덱스 TUI({tui_pane}) codex 가동 · 세션 롤아웃 확인"
 
 def judge_bridge(logname: str):
