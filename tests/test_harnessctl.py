@@ -416,6 +416,15 @@ def _live_bots_seams():
          # npm 배포판 회귀: codex가 node 런처(#!/usr/bin/env node)로 떠도 가동 판정 (2026-08-05 실측)
          (310, 300, "node /Users/x/.local/bin/codex -s workspace-write -c sandbox_workspace_write.network_access=true")])
 
+def _rollout(tmp_path, cwd):
+    """codex 롤아웃 fixture — 브리지 세션 특정의 검출원 (session_meta.cwd 일치)"""
+    d = tmp_path / ".codex/sessions/2026/08/05"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "rollout-2026-08-05T12-00-00-aaaaaaaa-1111-2222-3333-444444444444.jsonl").write_text(
+        json.dumps({"type": "session_meta",
+                    "payload": {"session_id": "aaaaaaaa-1111-2222-3333-444444444444",
+                                "cwd": str(cwd)}}) + "\n")
+
 def _mcp_log(tmp_path, workdir, line):
     mangled = re.sub(r"[/.]", "-", str(workdir))
     d = tmp_path / "Library/Caches/claude-cli-nodejs" / mangled / "mcp-logs-plugin-discord-discord"
@@ -428,6 +437,7 @@ def test_verify_ok_with_fixture_logs(tmp_path):
     run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--dry-run")
     _mcp_log(tmp_path, work, "Successfully connected to Discord")
     _mcp_log(tmp_path, work / "chat", "Successfully connected to Discord")
+    _rollout(tmp_path, work / "codex-discord-workspace")
     (bridge / "logs").mkdir(exist_ok=True)
     (bridge / "logs/daemon.log").write_text("로그인: codex#1 / 엔진 codex\n")
     (bridge / "logs/daemon-gemini.log").write_text("로그인: gem#1 / 엔진 agy\n")
@@ -530,6 +540,19 @@ def test_verify_codex_tui_pane_without_codex_is_fail(tmp_path):
     r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook", env_extra=env)
     assert r.returncode == 1
     assert "[FAIL] 코덱스 TUI" in r.stdout and "tui-up.sh" in r.stdout
+
+def test_verify_codex_tui_without_rollout_is_fail(tmp_path):
+    # 3차 실측(회신6): codex v0.146.0은 세션 UUID를 화면에 안 보여 브리지가
+    # 롤아웃 session_meta(cwd)로 세션을 특정한다 — cwd 일치 롤아웃이 없으면
+    # TUI가 살아 있어도 호명이 실패하므로 verify가 FAIL로 잡아야 한다
+    base, work = _installed(tmp_path)
+    run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--dry-run")
+    _mcp_log(tmp_path, work, "Successfully connected to Discord")
+    _mcp_log(tmp_path, work / "chat", "Successfully connected to Discord")
+    r = run(tmp_path, "verify", "--work-dir", str(work), "--skip-webhook",
+            env_extra=_live_bots_seams())        # 롤아웃 fixture 없음
+    assert r.returncode == 1
+    assert "[FAIL] 코덱스 TUI" in r.stdout and "롤아웃" in r.stdout
 
 def test_verify_wait_polls_until_timeout(tmp_path):
     # bot-up 직렬화(락 대기 최대 300초+연결 240초) 중 조기 FAIL 방지 — 상한까지 폴링 후 판정

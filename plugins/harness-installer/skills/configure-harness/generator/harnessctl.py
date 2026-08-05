@@ -526,12 +526,30 @@ def _is_codex_cmd(cmdline: str) -> bool:
     return (base(parts[0] if parts else "") in ("node", "bun")
             and base(parts[1] if len(parts) > 1 else "").startswith("codex"))
 
+def _rollout_exists(workdir: str) -> bool:
+    """cwd 일치 codex 롤아웃 파일 존재 여부 — 브리지의 세션 특정 검출원.
+    codex v0.146.0 기본 설정은 세션 UUID를 화면에 표시하지 않아(3차 실측)
+    브리지가 롤아웃 session_meta.cwd 로 세션을 특정한다."""
+    root = home() / ".codex/sessions"
+    if not root.is_dir():
+        return False
+    for f in sorted(root.rglob("rollout-*.jsonl"), reverse=True):
+        try:
+            with f.open(encoding="utf-8", errors="ignore") as fh:
+                meta = json.loads(fh.readline())
+            if meta.get("payload", {}).get("cwd") == workdir:
+                return True
+        except (OSError, ValueError):
+            continue
+    return False
+
 def judge_codex_tui():
     """코덱스 TUI 판정 — TUI_PANE 미구성이면 None. 세션·pane이 있어도 codex가
     죽어 있으면 브리지가 호명을 거부한다(3차 실측). tui-up.sh 는 멱등."""
     if not (bridge_repo() / ".env").exists():
         return None
-    tui_pane = parse_env(bridge_repo() / ".env").get("TUI_PANE")
+    env = parse_env(bridge_repo() / ".env")
+    tui_pane = env.get("TUI_PANE")
     if not tui_pane:
         return None
     tui_sess = tui_pane.split(":", 1)[0]
@@ -539,9 +557,13 @@ def judge_codex_tui():
     fix = f"bash {bridge_repo()}/scripts/tui-up.sh 로 재기동 후 verify 재실행"
     if procs is None:
         return "FAIL", f"코덱스 TUI 세션({tui_sess}) 없음 — {fix}"
-    if any(_is_codex_cmd(cmd) for _, cmd in procs):
-        return "OK", f"코덱스 TUI({tui_pane}) codex 가동"
-    return "FAIL", f"코덱스 TUI pane({tui_pane})에 codex 없음(종료됨) — {fix}"
+    if not any(_is_codex_cmd(cmd) for _, cmd in procs):
+        return "FAIL", f"코덱스 TUI pane({tui_pane})에 codex 없음(종료됨) — {fix}"
+    workdir = env.get("CODEX_WORKDIR")
+    if workdir and not _rollout_exists(workdir):
+        return "FAIL", (f"코덱스 세션 롤아웃 없음(cwd={workdir} 일치 파일 부재) — "
+                        f"브리지가 세션을 특정하지 못해 호명이 실패한다. {fix}")
+    return "OK", f"코덱스 TUI({tui_pane}) codex 가동 · 세션 롤아웃 확인"
 
 def judge_bridge(logname: str):
     p = bridge_repo() / "logs" / logname
