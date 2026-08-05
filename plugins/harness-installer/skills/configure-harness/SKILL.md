@@ -145,11 +145,13 @@ python3 <이 스킬 폴더>/generator/harnessctl.py install --work-dir <설치 �
 cd <설치 루트> && claude mcp list
 ```
 
-`plugin:discord:discord`가 `✔ Connected`로 뜨는지 확인한다. 이 1회 실행이
-사전 연결 확인이자 첫 spawn 실패 예방이다 — 플러그인 (재)설치 직후 봇
-세션의 첫 MCP spawn이 조용히 실패하는 현상이 실측됐고(2026-08-05, 재기동도
-비수렴), 인터랙티브 spawn 1회 후에는 전부 정상 접속했다(메커니즘 미확정,
-실측 기반 예열).
+`plugin:discord:discord`가 `✔ Connected`로 뜨는지 확인한다. 이 1회 실행은
+사전 연결 확인 + 첫 spawn 실패 완화책이다 — 플러그인 (재)설치 직후 봇
+세션의 첫 MCP spawn이 조용히 실패하는 현상이 실측됐다(2026-08-05).
+**단, 예열은 보장이 아니다**: 같은 날 신규 폴더 실측에서 예열 직후에도
+실패했고 시간 경과 후 재기동이 성공했다(Claude Code 본체 이슈로 추정 —
+경과 시간·재시도 횟수가 변수). verify FAIL 시 아래 폴백 절차(재기동 1회 →
+예열 복구 → 진단)를 따르면 수렴한다.
 
 verify 전에 수다 클로드를 지금 기동해야 한다. 8단계에서 자동 기동을 켠
 경우(`--autostart`) 오케스트레이터는 `install-autostart.sh`가 즉시 띄우지만,
