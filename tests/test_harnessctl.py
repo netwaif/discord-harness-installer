@@ -295,6 +295,11 @@ def test_overlay_writes_bot_settings_with_merge(tmp_path):
         assert cfg["enableAllProjectMcpServers"] is True
         assert "mcp__plugin_discord_discord" in cfg["permissions"]["allow"]
         assert "mcp__plugin_discord_discord__reply" in cfg["permissions"]["allow"]
+        # 대시보드 클로드 카드 데이터원 — statusLine 스냅샷 기록자 주입 (2026-08-05 실측:
+        # 미주입 시 카드가 [Claude]·— 로 영구 공백)
+        assert cfg["statusLine"]["type"] == "command"
+        assert cfg["statusLine"]["command"].endswith(
+            "usage-coach/scripts/statusline-command.sh")
     # 기존 사용자 항목 보존(병합)
     orch = json.loads((work / ".claude/settings.local.json").read_text())
     assert "Bash(ls:*)" in orch["permissions"]["allow"]
@@ -317,6 +322,7 @@ def test_remove_reverts_bot_settings(tmp_path):
     orch = json.loads((work / ".claude/settings.local.json").read_text())
     assert orch["permissions"]["allow"] == ["Bash(ls:*)"]
     assert "enableAllProjectMcpServers" not in orch
+    assert "statusLine" not in orch                  # 설치기 주입분 회수
     # 설치기가 만든 파일: 통째 제거
     assert not (work / "chat/.claude/settings.local.json").exists()
 

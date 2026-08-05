@@ -379,7 +379,7 @@ def write_bot_settings(work: Path, st: dict) -> list[str]:
         p.parent.mkdir(parents=True, exist_ok=True)
         created = not p.exists()
         cur = {} if created else json.loads(p.read_text())
-        entry = {"created": created, "allow": [], "eams": False}
+        entry = {"created": created, "allow": [], "eams": False, "statusline": False}
         if not cur.get("enableAllProjectMcpServers"):
             cur["enableAllProjectMcpServers"] = True
             entry["eams"] = True
@@ -388,12 +388,20 @@ def write_bot_settings(work: Path, st: dict) -> list[str]:
             if perm not in allow:
                 allow.append(perm)
                 entry["allow"].append(perm)
+        if "statusLine" not in cur:
+            # 대시보드 '봇 세션' 클로드 카드의 데이터원 — statusLine 훅이 세션
+            # 스냅샷을 남긴다(usage-coach 정본). 미주입 시 카드가 영구 공백
+            # (2026-08-05 실측). 사용자가 이미 설정한 statusLine은 건드리지 않는다.
+            cur["statusLine"] = {
+                "type": "command",
+                "command": f"bash {coach_repo()}/scripts/statusline-command.sh"}
+            entry["statusline"] = True
         rel = str(p.relative_to(work))
-        if entry["allow"] or entry["eams"]:
+        if entry["allow"] or entry["eams"] or entry["statusline"]:
             p.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
             if rel not in rec:
                 rec[rel] = entry
-            out.append(f"봇 권한 사전 승인: {p} (discord reply + MCP 서버)")
+            out.append(f"봇 권한 사전 승인: {p} (discord reply + MCP 서버 + statusLine)")
     return out
 
 def build_chat_cmd(work: Path) -> str:
@@ -676,6 +684,8 @@ def cmd_remove(a) -> None:
             continue
         if entry.get("eams"):
             cur.pop("enableAllProjectMcpServers", None)
+        if entry.get("statusline"):
+            cur.pop("statusLine", None)
         allow = cur.get("permissions", {}).get("allow", [])
         for perm in entry.get("allow", []):
             if perm in allow:
