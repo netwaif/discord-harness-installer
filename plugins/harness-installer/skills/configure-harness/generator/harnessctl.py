@@ -384,15 +384,11 @@ def write_bot_settings(work: Path, st: dict) -> list[str]:
         if not cur.get("enableAllProjectMcpServers"):
             cur["enableAllProjectMcpServers"] = True
             entry["eams"] = True
-        perms = cur.setdefault("permissions", {})
-        if "defaultMode" not in perms:
-            # 무인 봇 전제의 마지막 조각 — 프로덕션 실측(전역 permissions.defaultMode
-            # "auto")의 폴더 한정 번역. 없으면 재시작 리추얼·오케 위임 Bash가 전부
-            # 권한 DM 프롬프트에 걸려 무인 운영이 성립하지 않는다(2026-08-05 실측).
-            # 사용자가 이미 설정한 defaultMode는 보존.
-            perms["defaultMode"] = "auto"
-            entry["mode"] = True
-        allow = perms.setdefault("allow", [])
+        # 무인 권한 모드는 여기(프로젝트 settings)가 아니라 bot-up.sh의 세션
+        # 플래그(--permission-mode auto, discord-multiagent v0.1.1)가 담당한다 —
+        # 프로젝트 스코프 defaultMode는 효력이 없음이 실측됨(2026-08-05, 0.1.8
+        # 시도 철회). entry["mode"]는 0.1.8 설치분 회수용으로 유지.
+        allow = cur.setdefault("permissions", {}).setdefault("allow", [])
         for perm in BOT_SETTINGS_ALLOW:
             if perm not in allow:
                 allow.append(perm)

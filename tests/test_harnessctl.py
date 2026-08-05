@@ -300,9 +300,9 @@ def test_overlay_writes_bot_settings_with_merge(tmp_path):
         assert cfg["statusLine"]["type"] == "command"
         assert cfg["statusLine"]["command"].endswith(
             "usage-coach/scripts/statusline-command.sh")
-        # 무인 리추얼 전제 — 프로덕션 실측(전역 defaultMode auto)의 폴더 한정 번역.
-        # 미주입 시 "세션 마감하고 재시작해"가 Bash 권한 DM 프롬프트에 걸린다 (8/5 실측)
-        assert cfg["permissions"]["defaultMode"] == "auto"
+        # 무인 권한 모드는 bot-up.sh 세션 플래그가 담당(프로젝트 defaultMode는
+        # 무효 실측, 0.1.8 철회) — 설정 파일엔 주입하지 않는다
+        assert "defaultMode" not in cfg["permissions"]
     # 기존 사용자 항목 보존(병합)
     orch = json.loads((work / ".claude/settings.local.json").read_text())
     assert "Bash(ls:*)" in orch["permissions"]["allow"]

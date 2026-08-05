@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "repos": {
-    "discord-multiagent": "v0.1.0",
+    "discord-multiagent": "v0.1.1",
     "codex-discord": "v0.1.4",
     "usage-coach": "v0.1.2"
   },
