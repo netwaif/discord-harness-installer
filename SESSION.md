@@ -25,6 +25,12 @@ folder-bot E2E. 남은 것 = §3.9 기준선 초기화 → 재촬영(내일) →
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
+0. (내일 최우선, 사용자 지시) folder-bot 0.1.2 — **대시보드 폴더봇 카드 공백
+   수정부터**: botctl add가 봇 폴더 settings.local.json에 statusLine 주입
+   (§3.14 하네스 수정과 동일 계열 — 기록자 부재로 ~/folder-bot-e2e 카드가
+   [Claude]·— 고정, 8/5 실측 스크린샷). usage-coach statusline-command.sh
+   존재 시에만 주입(folder-bot 단독 설치 호환). 아래 4번 이월 3건과 같은
+   버전으로 묶어 처리 → 수정 후 foldertest 재기동+턴 1회로 카드 검증.
 1. (내일) 재촬영 — 컨트롤 세션에 ct-reply §3.9 초기화 지시(folder-bot 잔재
    ~/folder-bot-e2e·foldertest plist·bots.json 항목 + 구버전 플러그인 캐시 포함)
    → 자체 점검 보고 → 촬영. 대본 기준: 설치기 0.1.11 / 핀 4종(현재 상태 참조) /
