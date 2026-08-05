@@ -139,6 +139,18 @@ python3 <이 스킬 폴더>/generator/harnessctl.py install --work-dir <설치 �
 
 ### 9. verify + 마무리
 
+봇 기동 전에 설치 루트에서 MCP 연결을 한 번 예열한다:
+
+```
+cd <설치 루트> && claude mcp list
+```
+
+`plugin:discord:discord`가 `✔ Connected`로 뜨는지 확인한다. 이 1회 실행이
+사전 연결 확인이자 첫 spawn 실패 예방이다 — 플러그인 (재)설치 직후 봇
+세션의 첫 MCP spawn이 조용히 실패하는 현상이 실측됐고(2026-08-05, 재기동도
+비수렴), 인터랙티브 spawn 1회 후에는 전부 정상 접속했다(메커니즘 미확정,
+실측 기반 예열).
+
 verify 전에 수다 클로드를 지금 기동해야 한다. 8단계에서 자동 기동을 켠
 경우(`--autostart`) 오케스트레이터는 `install-autostart.sh`가 즉시 띄우지만,
 수다 클로드는 plist 파일만 생성되고 지금 당장 뜨지는 않는다(재부팅 후에는
@@ -172,7 +184,16 @@ python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 �
 ```
 
 재기동 후에도 같은 FAIL이면 **재기동을 반복하지 않는다**(수렴하지 않는
-경우가 실측됨 — 2026-08-05). 대신 진단 증거를 수집해 보고하고 멈춘다:
+경우가 실측됨 — 2026-08-05). 다음은 예열 복구 1회 — 실측에서 유일하게
+상태를 푼 경로다:
+
+```
+cd <설치 루트> && claude mcp list        # discord ✔ Connected 확인
+bash <설치 루트>/scripts/bot-restart.sh <세션>
+python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 루트> --wait 600
+```
+
+예열 복구로도 같은 FAIL이면 진단 증거를 수집해 보고하고 멈춘다:
 
 1. 프로세스 부재 확인: `ps -axo pid,ppid,command | grep -E "bun run.*discord"
    | grep -v grep` — 봇 세션 자손에 서버 프로세스가 없으면 spawn 자체가
