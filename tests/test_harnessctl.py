@@ -413,7 +413,8 @@ def _live_bots_seams():
          (200, 1, "claude --channels plugin:discord@claude-plugins-official"),
          (250, 200, f"bun run --cwd {PLUG_CWD} --shell=bun --silent start"),
          (300, 1, "zsh"),
-         (310, 300, "/Users/x/.local/bin/codex -s workspace-write -c sandbox_workspace_write.network_access=true")])
+         # npm 배포판 회귀: codex가 node 런처(#!/usr/bin/env node)로 떠도 가동 판정 (2026-08-05 실측)
+         (310, 300, "node /Users/x/.local/bin/codex -s workspace-write -c sandbox_workspace_write.network_access=true")])
 
 def _mcp_log(tmp_path, workdir, line):
     mangled = re.sub(r"[/.]", "-", str(workdir))
