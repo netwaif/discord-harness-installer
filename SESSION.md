@@ -33,6 +33,11 @@ SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구
    정정 1호(8/5) + 정정 2호(8/6) 기준" ③촬영 중 무로그 MCP 불발 시 bot-restart
    1회, 반복 금지(유령 리스 판정). 촬영 전 머신 정비 1줄(실행 여부 미확인):
    sudo chmod -R g-w,o-w /usr/local/share/zsh — compinit 경고 제거.
+   **문제 발생 시 지시서 왕복 대신 `ssh harness-test@localhost`로 CT가 직접
+   진단한다**(무암호, 허용 규칙은 이 폴더 .claude/settings.local.json에 있음).
+   판정 요령: MCP 로그 = ~/Library/Caches/claude-cli-nodejs/<폴더 mangled>/
+   mcp-logs-plugin-discord-discord/ 최신 jsonl — 파일 없음=유령 리스(무로그
+   스킵), Connection failed=통상 원인. 상세·실험법 = rootcause 문서 정본.
 1. collab 봇 재시작 확인 — 0.1.5 다중 인원 채널 규칙은 세션 재시작 후 적용
    (사용자에게 "세션 마감하고 재시작해" 안내했음, 이행 여부 미확인).
 2. 통과 시 Step 6(release 커밋+푸시 — 기준은 0.1.11) + Step 7(아래 긱님 항목 잔존 확인)
