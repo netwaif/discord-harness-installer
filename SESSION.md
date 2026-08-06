@@ -13,39 +13,34 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-Task 15 릴리즈 게이트 — 3차 촬영 실패 후 결함 대량 발견·정본 수정 완료(8/5 종일).
-설치기 0.1.11(4a6a6ac, 테스트 42개) / pins: discord-multiagent v0.1.1 ·
-codex-discord v0.1.4 · usage-coach v0.1.2 · folder-bot 최소 0.1.1.
-전 게이트 통과: 설치 9단계 · verify 13항목(프로세스·TUI·롤아웃 판정 포함) ·
-실응답 4종 · 대시보드 카드(모델·% 포함) · 재시작 리추얼(하네스+folder-bot) ·
-folder-bot E2E. 남은 것 = §3.9 기준선 초기화 → 재촬영(내일) → Step 6·7.
-게이트 문서 정본: `/Users/Shared/harness-e2e-ct-reply-2026-08-05.md` (§3.5~3.17,
-회신 색인 겸용) + checklist 최신판.
+**촬영 대기 — 사용자 신호만 남음.** §3.9 초기화 완료(봇 4개 /exit 정상 종료·
+usage-coach 삭제·마켓플레이스 정리, 회신 harness-e2e-reset39-result-2026-08-06.md).
+8/6 대성과: MCP 무로그 불발 **근본 원인 격리**(SSH 직접 진단) — 채널 연결 세션을
+kill-session 강제 종료하면 봇 이름에 유령 리스(~90분), 같은 이름 새 세션이 채널
+MCP 연결을 무로그 스킵. /exit 정상 종료는 리스 없음(즉시 재기동 실증). 정본:
+`/Users/Shared/harness-e2e-mcp-rootcause-2026-08-06.md`.
+folder-bot 0.1.2→0.1.5 출시(이월 3건+statusLine 카드+py3.9 크래시+유령 리스 반영
++다중 인원 채널 규칙). 설치기 0.1.11 불변 / pins 불변(folder-bot 최소 0.1.1 호환).
+촬영 범위 확대(사용자 지시): folder-bot 포함 전 기능 — 대본 정정 2호 발행.
+SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구축 완료).
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-0. (내일 최우선, 사용자 지시) folder-bot 0.1.2 — **대시보드 폴더봇 카드 공백
-   수정부터**: botctl add가 봇 폴더 settings.local.json에 statusLine 주입
-   (§3.14 하네스 수정과 동일 계열 — 기록자 부재로 ~/folder-bot-e2e 카드가
-   [Claude]·— 고정, 8/5 실측 스크린샷). usage-coach statusline-command.sh
-   존재 시에만 주입(folder-bot 단독 설치 호환). 아래 4번 이월 3건과 같은
-   버전으로 묶어 처리 → 수정 후 foldertest 재기동+턴 1회로 카드 검증.
-1. (내일) 재촬영 — 컨트롤 세션에 ct-reply §3.9 초기화 지시(folder-bot 잔재
-   ~/folder-bot-e2e·foldertest plist·bots.json 항목 + 구버전 플러그인 캐시 포함)
-   → 자체 점검 보고 → 촬영. 대본 기준: 설치기 0.1.11 / 핀 4종(현재 상태 참조) /
-   verify --wait 600 / 9단계 기동 전 claude mcp list 예열 / 대시보드 확인 전
-   봇에 말 걸기 / 첫 기동 MCP 실패 시 폴백(재기동 1회→예열 복구)은 끊지 말고 촬영.
-   촬영 전 머신 정비 1줄(사용자 실행 여부 미확인): sudo chmod -R g-w,o-w
-   /usr/local/share/zsh — compinit insecure 경고 제거(터미널 화면 정리).
+0. **(사용자 신호 대기) 촬영 개시** — "준비됐다" 신호 오면 **한 단계씩 짧게**
+   안내(사용자 지침: 출력 쏟아내지 말 것). 순서: ①사용자 수동 2건 = 디스코드
+   서버에 봇 4개 초대 확인 + OBS 준비 ②설치 세션에 "촬영 시작 — 대본 +
+   정정 1호(8/5) + 정정 2호(8/6) 기준" ③촬영 중 무로그 MCP 불발 시 bot-restart
+   1회, 반복 금지(유령 리스 판정). 촬영 전 머신 정비 1줄(실행 여부 미확인):
+   sudo chmod -R g-w,o-w /usr/local/share/zsh — compinit 경고 제거.
+1. collab 봇 재시작 확인 — 0.1.5 다중 인원 채널 규칙은 세션 재시작 후 적용
+   (사용자에게 "세션 마감하고 재시작해" 안내했음, 이행 여부 미확인).
 2. 통과 시 Step 6(release 커밋+푸시 — 기준은 0.1.11) + Step 7(아래 긱님 항목 잔존 확인)
-3. Claude Code 본체 이슈 보고(#9 계열, 재료 확보됨): discord MCP 첫 spawn이
-   handshake 전 사망 시 로그·재시도 없음 — 8/5 아침 하네스(09:33~09:51 전패,
-   10:20 이후 전승) + 신규 폴더(23:12·23:24 실패→3수 성공, 예열 무효 사례).
-   상세: diag-reply·statedump 문서군.
-4. folder-bot 0.1.2 이월: ①botctl 토큰 파일 직접 삭제(평문 잔존 — 보안 우선)
-   ②스킬에 MCP 실패 폴백 절 ③doctor에 MCP 연결 판정 ④eams 무조건 주입 여부
-   + 미신뢰 폴더 재현 실험 (ct-reply §3.17)
+3. Claude Code 본체 이슈 보고(#9 계열) — **재료 완성**: 유령 리스 재현 조건·
+   TTL 실측 정본 = harness-e2e-mcp-rootcause-2026-08-06.md (기존 diag 문서군은 보조)
+4. folder-bot 차기 이월: ①botctl stop을 /exit 정상 종료 방식으로(현 kill-session은
+   유령 리스 생성 — 8/6 원인 격리) ②doctor MCP 판정 sessionId 기준 구분(8/6 완화만
+   반영) ③eams 무조건 주입 여부 + 미신뢰 폴더 재현 실험(ct-reply §3.17)
 5. 차기 이월분 기록 유지: #18/#19/#20/#21/#25(remove 품질)·#16(brew prefix 검사)·
    bot-up 락 240s 증폭(상류)·"수다 봇 폴더 하위 분리"는 d10e6f9로 해소됨
 6. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
@@ -74,6 +69,12 @@ folder-bot E2E. 남은 것 = §3.9 기준선 초기화 → 재촬영(내일) →
 - 2026-08-05 MCP 첫 spawn 무로그·무재시도 실패 = Claude Code 본체 결함으로 잠정 확정(신규 폴더 재현 + 예열 무효 사례) — 검출·폴백으로 대응, 사용자 수용. 예열 절 문구 "보장 아님" 정정(0.1.11)
 - 2026-08-05 folder-bot E2E를 게이트에 편입(사용자 지시 — 실사용 핵심 워크플로우) → 통과(무인 모드 실증 포함). 후속 3건+eams 실험은 folder-bot 0.1.2 이월
 - 2026-08-05 분류기 차단 3회(권한 자동화 주제 커밋·편집) — 사용자 승인 후 중립 메시지/사용자 cp로 처리. bot-up-fixed.sh 전달 관례: /Users/Shared/ 경유
+- 2026-08-06 folder-bot 0.1.2 출시(이월 3건+statusLine 주입·회수) → 검증 중 MCP 무로그 불발 재발 → 사용자 지시로 "폴백 우회" 대신 근본 해결 전환 + 촬영 범위 = 전 기능(folder-bot 포함, 뺄 건 촬영 후 사용자가 결정)
+- 2026-08-06 SSH 진단로 구축: harness-test 무암호 접속(공개키는 사용자 cp→설치 세션이 authorized_keys 설치, SACL은 사용자 sudo dseditgroup, 이 프로젝트 settings.local.json에 ssh/scp 허용 규칙). 분류기 차단 다수 — 승인/우회불가 항목은 사용자 손 경유 관례 유지
+- 2026-08-06 **MCP 무로그 불발 원인 격리(변수 제거 실험 E1~E6)**: 채널 연결 세션의 kill-session 강제 종료 → 봇 이름 유령 리스(~90분 TTL) → 같은 이름 새 세션이 채널 MCP 연결 시도 자체를 무로그 스킵. /exit 정상 종료는 리스 없음(10초 뒤 재기동 즉시 연결 실증). 8/5 "아침 전패→10:20 전승"·"예열 복구 성공"은 전부 TTL 만료 우연으로 재해석. bot-restart(pane 교체)는 안전 — 하네스가 멀쩡했던 이유
+- 2026-08-06 folder-bot 연쇄 출시: 0.1.3(예열 DISCORD_STATE_DIR 정정+doctor 종료로그 오판 완화) / 0.1.4(py3.9 임포트 크래시 — `X | None` 표기, from __future__ 수정 + SKILL 폴백 절 유령 리스 기반 교체) / 0.1.5(다중 인원 채널 규칙 — 프로덕션 collab에서 아내 멘션 응답 사고 2회 실측, 정본+collab CLAUDE.md 동시 반영)
+- 2026-08-06 §3.9 초기화 완료(설치 세션): /exit·/quit 정상 종료로 리스 회피, usage-coach 삭제(CT 판단: pair·install.sh·statusLine이 전부 재생성+낡은 스냅샷 촬영 오염 방지), multi-agent-starter·folder-bot 마켓플레이스 제거는 적정(설치기 plugins 단계가 자체 추가 — harnessctl PLUGINS 상수). §6-2 카드 %는 재촬영 folder-bot E2E에서 종결(used=3 스냅샷까지는 실증 완료)
+- 2026-08-06 촬영 편성: 유령 리스 없어 당일 촬영 가능. 사용자 지친 상태 — **출력 짧게, 단계별로만, 사용자 신호 대기**
 
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
@@ -110,3 +111,11 @@ folder-bot E2E. 남은 것 = §3.9 기준선 초기화 → 재촬영(내일) →
 - `/Users/Shared/harness-e2e-ct-reply-2026-08-05.md` CT 회신 정본(§3.5 분리·§3.7 예열·§3.8 시퀀스·§3.9 초기화 목록·§3.10 범프·§3.11~13 코덱스·§3.14 statusline·§3.15~16 무인 모드·§3.17 folder-bot 이월) — 다음 세션 필독
 - `/Users/Shared/harness-e2e-diag-reply{,2,3,4,6,7,9,10,12}-2026-08-05.md`·`harness-e2e-statedump-2026-08-05.md` 설치 세션 회신들(실측 기록)
 - `/Users/Shared/bot-up-fixed.sh` bot-up 완성본(분류기 차단 시 사용자 cp용)
+- folder-bot 커밋열(8/6): a28f5bc(0.1.2 statusLine 주입·회수/pair --token-file/doctor MCP 판정/SKILL 폴백)→16fc1d1(0.1.3)→69dfb25(0.1.4)→f66abd9(0.1.5) — 테스트 32개(24+8), 전부 origin/main 푸시
+- folder-bot 신규 코드 식별자: `statusline_script()`/`write_statusline()`/`remove_statusline()`(bots.json `statusline_cmd` 기록·회수)·`mcp_log_dir()`·pair `--token-file`+`consume_token_file()`·`from __future__ import annotations`
+- `/Users/Shared/harness-e2e-mcp-rootcause-2026-08-06.md` **유령 리스 원인 격리 정본**(실험표 E1~E6·TTL 90분·/exit 안전·§3.9 보정·#9 이슈 재료)
+- `/Users/Shared/harness-e2e-script-corrections-2026-08-06.md` 대본 정정 2호(판정 무관 3건→2건·3부 7번 folder-bot E2E 신설·마켓플레이스 회신)
+- `/Users/Shared/harness-e2e-ct-folderbot012-2026-08-06.md`(0.1.2 검증 지시)·`harness-e2e-folderbot012-result-2026-08-06.md`(설치 세션 회신: 통과+덤 버그 2건)·`harness-e2e-reset39-result-2026-08-06.md`(§3.9 완료 회신)·`harness-e2e-ct-ssh-mcp-diag-2026-08-06.md`(SSH 개설 지시)
+- `.claude/settings.local.json`(이 프로젝트) ssh/scp harness-test@localhost 허용 규칙 4종
+- `/Users/soonho/ai-folder/collab/CLAUDE.md` 봇 지침 블록에 다중 인원 채널 규칙 추가(마커 블록 내, 사용자 임시 아내 ID 규칙 276행~ 은 보존) — **적용은 collab 봇 재시작 후**
+- harness-test 상설 접속: `ssh harness-test@localhost` (BatchMode 무암호) · 진단 스크립트 /tmp/ft-*.sh(harness-test측, 임시)
