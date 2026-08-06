@@ -23,6 +23,7 @@ folder-bot 0.1.2→0.1.5 출시(이월 3건+statusLine 카드+py3.9 크래시+�
 +다중 인원 채널 규칙). 설치기 0.1.11 불변 / pins 불변(folder-bot 최소 0.1.1 호환).
 촬영 범위 확대(사용자 지시): folder-bot 포함 전 기능 — 대본 정정 2호 발행.
 SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구축 완료).
+8/6 저녁: collab 봇 botctl 재기동 완료(채널 연결 확인, 0.1.5 규칙 적용됨).
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
@@ -38,17 +39,16 @@ SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구
    판정 요령: MCP 로그 = ~/Library/Caches/claude-cli-nodejs/<폴더 mangled>/
    mcp-logs-plugin-discord-discord/ 최신 jsonl — 파일 없음=유령 리스(무로그
    스킵), Connection failed=통상 원인. 상세·실험법 = rootcause 문서 정본.
-1. collab 봇 재시작 확인 — 0.1.5 다중 인원 채널 규칙은 세션 재시작 후 적용
-   (사용자에게 "세션 마감하고 재시작해" 안내했음, 이행 여부 미확인).
-2. 통과 시 Step 6(release 커밋+푸시 — 기준은 0.1.11) + Step 7(아래 긱님 항목 잔존 확인)
-3. Claude Code 본체 이슈 보고(#9 계열) — **재료 완성**: 유령 리스 재현 조건·
+1. 통과 시 Step 6(release 커밋+푸시 — 기준은 0.1.11) + Step 7(아래 긱님 항목 잔존 확인)
+2. Claude Code 본체 이슈 보고(#9 계열) — **재료 완성**: 유령 리스 재현 조건·
    TTL 실측 정본 = harness-e2e-mcp-rootcause-2026-08-06.md (기존 diag 문서군은 보조)
-4. folder-bot 차기 이월: ①botctl stop을 /exit 정상 종료 방식으로(현 kill-session은
+3. folder-bot 차기 이월: ①botctl stop을 /exit 정상 종료 방식으로(현 kill-session은
    유령 리스 생성 — 8/6 원인 격리) ②doctor MCP 판정 sessionId 기준 구분(8/6 완화만
    반영) ③eams 무조건 주입 여부 + 미신뢰 폴더 재현 실험(ct-reply §3.17)
-5. 차기 이월분 기록 유지: #18/#19/#20/#21/#25(remove 품질)·#16(brew prefix 검사)·
+   ④봇 세션 수동 재기동 UX — 맨 claude 기동 오용 감지/안내(8/6 실사용 사고)
+4. 차기 이월분 기록 유지: #18/#19/#20/#21/#25(remove 품질)·#16(brew prefix 검사)·
    bot-up 락 240s 증폭(상류)·"수다 봇 폴더 하위 분리"는 d10e6f9로 해소됨
-6. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
+5. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
 
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
@@ -80,6 +80,7 @@ SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구
 - 2026-08-06 folder-bot 연쇄 출시: 0.1.3(예열 DISCORD_STATE_DIR 정정+doctor 종료로그 오판 완화) / 0.1.4(py3.9 임포트 크래시 — `X | None` 표기, from __future__ 수정 + SKILL 폴백 절 유령 리스 기반 교체) / 0.1.5(다중 인원 채널 규칙 — 프로덕션 collab에서 아내 멘션 응답 사고 2회 실측, 정본+collab CLAUDE.md 동시 반영)
 - 2026-08-06 §3.9 초기화 완료(설치 세션): /exit·/quit 정상 종료로 리스 회피, usage-coach 삭제(CT 판단: pair·install.sh·statusLine이 전부 재생성+낡은 스냅샷 촬영 오염 방지), multi-agent-starter·folder-bot 마켓플레이스 제거는 적정(설치기 plugins 단계가 자체 추가 — harnessctl PLUGINS 상수). §6-2 카드 %는 재촬영 folder-bot E2E에서 종결(used=3 스냅샷까지는 실증 완료)
 - 2026-08-06 촬영 편성: 유령 리스 없어 당일 촬영 가능. 사용자 지친 상태 — **출력 짧게, 단계별로만, 사용자 신호 대기**
+- 2026-08-06 collab 봇 실사용 사고 진단·복구: 사용자가 pane에서 맨 `claude`로 재기동 → `--channels` 없이 떠서 채널 미연결(MCP 로그 "Channel notifications skipped" 실측, 종료 자체는 clean — 유령 리스 아님). botctl `start --name collab`로 재기동해 "Channel notifications registered" 확인, 0.1.5 다중 인원 규칙 적용 완료. 규칙 확립: **종료는 /exit 자유, 기동은 반드시 botctl/bot-restart 경유**(정식 경로는 디스코드 "세션 마감하고 재시작해"). folder-bot 이월 ④로 등재
 
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
