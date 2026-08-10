@@ -139,19 +139,22 @@ python3 <이 스킬 폴더>/generator/harnessctl.py install --work-dir <설치 �
 
 ### 9. verify + 마무리
 
-봇 기동 전에 설치 루트에서 MCP 연결을 한 번 예열한다:
+봇 기동 전에 설치 루트에서 MCP 연결을 한 번 예열한다. 하네스는 토큰을
+전역 경로가 아닌 봇별 상태 폴더에 두므로 **`DISCORD_STATE_DIR`를 반드시
+지정한다** — 없이 돌리면 토큰을 못 찾아 항상 실패한다(실측 2026-08-10,
+과거 "예열 불안정"의 실체):
 
 ```
-cd <설치 루트> && claude mcp list
+cd <설치 루트> && DISCORD_STATE_DIR=<설치 루트>/.discord-state claude mcp list
+cd <설치 루트> && DISCORD_STATE_DIR=<설치 루트>/chat/.discord-state claude mcp list
 ```
 
-`plugin:discord:discord`가 `✔ Connected`로 뜨는지 확인한다. 이 1회 실행은
-사전 연결 확인 + 첫 spawn 실패 완화책이다 — 플러그인 (재)설치 직후 봇
-세션의 첫 MCP spawn이 조용히 실패하는 현상이 실측됐다(2026-08-05).
-**단, 예열은 보장이 아니다**: 같은 날 신규 폴더 실측에서 예열 직후에도
-실패했고 시간 경과 후 재기동이 성공했다(Claude Code 본체 이슈로 추정 —
-경과 시간·재시도 횟수가 변수). verify FAIL 시 아래 폴백 절차(재기동 1회 →
-예열 복구 → 진단)를 따르면 수렴한다.
+각각 `plugin:discord:discord`가 `✔ Connected`로 뜨는지 확인한다. 환경변수를
+지정했는데도 실패하면 **같은 Claude 계정에 동명 세션이 살아 있는지**(이 머신
+포함 다른 기기의 `-n orchestrator`/`-n chat-claude` — 활성 이름 충돌은 채널
+연결이 로그 없이 스킵된다, 실측 2026-08-10) 또는 유령 리스(강제 종료 후
+~90분)를 의심한다. verify FAIL 시 아래 폴백 절차(재기동 1회 → 예열 복구 →
+진단)를 따르면 수렴한다.
 
 verify 전에 수다 클로드를 지금 기동해야 한다. 8단계에서 자동 기동을 켠
 경우(`--autostart`) 오케스트레이터는 `install-autostart.sh`가 즉시 띄우지만,
@@ -198,12 +201,17 @@ python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 �
 상태를 푼 경로다:
 
 ```
-cd <설치 루트> && claude mcp list        # discord ✔ Connected 확인
+# 상태 폴더는 세션별: orchestrator → <설치 루트>/.discord-state, chat-claude → <설치 루트>/chat/.discord-state
+cd <설치 루트> && DISCORD_STATE_DIR=<세션별 상태 폴더> claude mcp list   # discord ✔ Connected 확인
 bash <설치 루트>/scripts/bot-restart.sh <세션>
 python3 <이 스킬 폴더>/generator/harnessctl.py verify --work-dir <설치 루트> --wait 600
 ```
 
-예열 복구로도 같은 FAIL이면 진단 증거를 수집해 보고하고 멈춘다:
+예열 복구로도 같은 FAIL이면 **동명 세션 충돌부터 확인한다**: 이 머신에서
+`ps aux | grep -o '\-n [a-z-]*'`로 같은 이름(`orchestrator`·`chat-claude`)의
+다른 클로드 세션이 살아 있으면 그 세션을 `/exit`로 내린 뒤 bot-restart —
+같은 Claude 계정의 다른 기기에 하네스를 또 설치한 경우가 여기 해당한다.
+그래도 같은 FAIL이면 진단 증거를 수집해 보고하고 멈춘다:
 
 1. 프로세스 부재 확인: `ps -axo pid,ppid,command | grep -E "bun run.*discord"
    | grep -v grep` — 봇 세션 자손에 서버 프로세스가 없으면 spawn 자체가
