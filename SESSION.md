@@ -13,40 +13,40 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**촬영 대기 — 사용자 신호만 남음.** §3.9 초기화 완료(봇 4개 /exit 정상 종료·
-usage-coach 삭제·마켓플레이스 정리, 회신 harness-e2e-reset39-result-2026-08-06.md).
-8/6 대성과: MCP 무로그 불발 **근본 원인 격리**(SSH 직접 진단) — 채널 연결 세션을
-kill-session 강제 종료하면 봇 이름에 유령 리스(~90분), 같은 이름 새 세션이 채널
-MCP 연결을 무로그 스킵. /exit 정상 종료는 리스 없음(즉시 재기동 실증). 정본:
-`/Users/Shared/harness-e2e-mcp-rootcause-2026-08-06.md`.
-folder-bot 0.1.2→0.1.5 출시(이월 3건+statusLine 카드+py3.9 크래시+유령 리스 반영
-+다중 인원 채널 규칙). 설치기 0.1.11 불변 / pins 불변(folder-bot 최소 0.1.1 호환).
-촬영 범위 확대(사용자 지시): folder-bot 포함 전 기능 — 대본 정정 2호 발행.
-SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구축 완료).
-8/6 저녁: collab 봇 botctl 재기동 완료(채널 연결 확인, 0.1.5 규칙 적용됨).
+**본편 촬영 성공(8/10 밤, 설치기 0.1.12) — folder-bot 세그먼트만 미완.**
+6차 테이크 완주: 설치→verify 12/12→디스코드 실응답 4건+@멘션 실증. 8/10 격리
+2건: ①무로그 스킵 2번째 원인 = **본계정 동명 세션 활성 이름 충돌**(orchestrator —
+/exit로 내리니 즉시 연결, 정정 3호) ②예열 결함 = SKILL 예열 명령 DISCORD_STATE_DIR
+누락 → **0.1.12 출시**(1f03739). foldertest는 무로그 스킵 4연속(CT가 재기동 중
+kill-session 섞은 실수 → 리스 추정, ~90분 만료 대기 필요)으로 밤엔 포기 —
+익일 5분 세그먼트로. 프로덕션 orchestrator 복구 완료(bot-restart 판정 882ms).
+harness-test 현황: 하네스 설치 상태 유지, foldertest pair 완료(~/folder-bot-e2e),
+봇 세션들 /exit 완료(codex-live만 잔존, 무해).
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-0. **(사용자 신호 대기) 촬영 개시** — "준비됐다" 신호 오면 **한 단계씩 짧게**
-   안내(사용자 지침: 출력 쏟아내지 말 것). 순서: ①사용자 수동 2건 = 디스코드
-   서버에 봇 4개 초대 확인 + OBS 준비 ②설치 세션에 "촬영 시작 — 대본 +
-   정정 1호(8/5) + 정정 2호(8/6) 기준" ③촬영 중 무로그 MCP 불발 시 bot-restart
-   1회, 반복 금지(유령 리스 판정). 촬영 전 머신 정비 1줄(실행 여부 미확인):
-   sudo chmod -R g-w,o-w /usr/local/share/zsh — compinit 경고 제거.
-   **문제 발생 시 지시서 왕복 대신 `ssh harness-test@localhost`로 CT가 직접
-   진단한다**(무암호, 허용 규칙은 이 폴더 .claude/settings.local.json에 있음).
+0. **foldertest 세그먼트 촬영(5분)** — 순서: ①CT가 오프카메라 사전 검증
+   (`zsh -lc "python3 <folder-bot 캐시>/botctl.py start --name foldertest"` →
+   registered 확인 → /exit — **SSH 맨 기동 금지, 반드시 zsh -lc**: 8/10 ENOENT
+   실측) ②"준비 완료" 신호 후 사용자 촬영: start→채널 `foldertest야 안녕`→
+   doctor→대시보드 폴더봇 카드 `ctx N%`(§6-2 종결 판정)→재시작 리추얼.
+   add·pair는 8/10 완료라 재실행 불필요(~/folder-bot-e2e pair 상태 유지).
    판정 요령: MCP 로그 = ~/Library/Caches/claude-cli-nodejs/<폴더 mangled>/
-   mcp-logs-plugin-discord-discord/ 최신 jsonl — 파일 없음=유령 리스(무로그
-   스킵), Connection failed=통상 원인. 상세·실험법 = rootcause 문서 정본.
-1. 통과 시 Step 6(release 커밋+푸시 — 기준은 0.1.11) + Step 7(아래 긱님 항목 잔존 확인)
-2. Claude Code 본체 이슈 보고(#9 계열) — **재료 완성**: 유령 리스 재현 조건·
-   TTL 실측 정본 = harness-e2e-mcp-rootcause-2026-08-06.md (기존 diag 문서군은 보조)
-3. folder-bot 차기 이월: ①botctl stop을 /exit 정상 종료 방식으로(현 kill-session은
+   mcp-logs-plugin-discord-discord/ — 파일 없음=리스(무로그 스킵)/registered
+   줄=성공. **켜기 전 본계정 동명 세션 확인**(`ps aux | grep '\-n '`) — 정정 3호.
+1. 4부 제거 테스트(#27 재진입·#8 판정) — 화면 밖, CT가 SSH로
+2. Step 6(release 커밋+푸시 — 기준은 **0.1.12**) + Step 7(아래 긱님 항목 잔존 확인)
+3. Claude Code 본체 이슈 보고(#9 계열) — 재료: rootcause 문서 + **8/10 추가분**
+   (활성 이름 충돌 = 무만료 리스 / 첫 기동 스킵은 이름 충돌 없어도 재현 —
+   프로덕션 kickstart에서도 재현, bot-restart로 수렴)
+4. 설치기 차기 이월(0.1.13 후보): ①preflight/verify 로컬 동명 세션 검사
+   ②verify 무로그 스킵 진단 메시지에 이름 충돌 안내(다른 기기 포함)
+5. folder-bot 차기 이월: ①botctl stop을 /exit 정상 종료 방식으로(현 kill-session은
    유령 리스 생성 — 8/6 원인 격리) ②doctor MCP 판정 sessionId 기준 구분(8/6 완화만
    반영) ③eams 무조건 주입 여부 + 미신뢰 폴더 재현 실험(ct-reply §3.17)
    ④봇 세션 수동 재기동 UX — 맨 claude 기동 오용 감지/안내(8/6 실사용 사고)
-4. 차기 이월분 기록 유지: #18/#19/#20/#21/#25(remove 품질)·#16(brew prefix 검사)·
+6. 차기 이월분 기록 유지: #18/#19/#20/#21/#25(remove 품질)·#16(brew prefix 검사)·
    bot-up 락 240s 증폭(상류)·"수다 봇 폴더 하위 분리"는 d10e6f9로 해소됨
 5. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
 
@@ -81,6 +81,12 @@ SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구
 - 2026-08-06 §3.9 초기화 완료(설치 세션): /exit·/quit 정상 종료로 리스 회피, usage-coach 삭제(CT 판단: pair·install.sh·statusLine이 전부 재생성+낡은 스냅샷 촬영 오염 방지), multi-agent-starter·folder-bot 마켓플레이스 제거는 적정(설치기 plugins 단계가 자체 추가 — harnessctl PLUGINS 상수). §6-2 카드 %는 재촬영 folder-bot E2E에서 종결(used=3 스냅샷까지는 실증 완료)
 - 2026-08-06 촬영 편성: 유령 리스 없어 당일 촬영 가능. 사용자 지친 상태 — **출력 짧게, 단계별로만, 사용자 신호 대기**
 - 2026-08-06 collab 봇 실사용 사고 진단·복구: 사용자가 pane에서 맨 `claude`로 재기동 → `--channels` 없이 떠서 채널 미연결(MCP 로그 "Channel notifications skipped" 실측, 종료 자체는 clean — 유령 리스 아님). botctl `start --name collab`로 재기동해 "Channel notifications registered" 확인, 0.1.5 다중 인원 규칙 적용 완료. 규칙 확립: **종료는 /exit 자유, 기동은 반드시 botctl/bot-restart 경유**(정식 경로는 디스코드 "세션 마감하고 재시작해"). folder-bot 이월 ④로 등재
+- 2026-08-10 compinit 경고 해결: 원인은 chmod가 아니라 **소유자**(/usr/local/share/zsh 전체가 soonho 소유 → harness-test 관점 신뢰 불가). harness-test ~/.zshrc 맨 앞에 fpath 필터+compinit 선실행 삽입으로 해소(백업 ~/.zshrc.bak-compinit). 기록돼 있던 sudo chmod 한 줄은 이 케이스에 무효였음
+- 2026-08-10 4~5차 테이크 중단 → **무로그 스킵 2번째 원인 격리: 본계정 동명 세션 활성 이름 충돌**. 리스는 세션 이름(-n)+Claude 계정 단위(macOS 계정 무관 — 같은 Max 계정), 활성 리스는 무만료. 본계정 orchestrator /exit → 테스트 봇 재기동 → 즉시 registered → verify 12/12 실증. 촬영 중 본계정 orchestrator·(해당 시)chat-claude 내려두기가 전제. 정정 3호 발행. 잔여 미해명: 테스트 chat-claude는 동명 없이도 최초 기동 스킵(재기동으로 해결)
+- 2026-08-10 **예열 결함 확정·0.1.12 출시**(1f03739): SKILL 예열 명령이 DISCORD_STATE_DIR 없이 돌아 토큰 미발견으로 항상 실패(5차 테이크 설치 세션이 자가 진단). 과거 "예열 성공"은 전역 ~/.claude/channels/discord/.env 잔존 우연으로 재해석. 수정 = 예열 2줄(오케 .discord-state / 수다 chat/.discord-state) + 폴백 절 동명 세션 확인 절차. SKILL.md만 변경, 테스트 42개 통과
+- 2026-08-11 **6차(최종) 테이크 본편 성공**(0.1.12): 설치→verify→실응답 4건→@멘션 실증 완주. 첫 기동 무로그 스킵은 이름 충돌 없어도 재현(하네스 봇·프로덕션 kickstart 공히) → bot-restart 1회 수렴이 정상 경로로 재확인
+- 2026-08-11 foldertest 세그먼트 미완: add·pair·start 성공, 채널 연결만 무로그 스킵 4연속. 도중 CT가 SSH 맨 기동(PATH 없는 환경)으로 ENOENT 1회 유발 — **원격 기동은 반드시 `zsh -lc` 경유** 교훈. kill-session 1회 섞은 실수로 리스 생성 가능성 → 익일 사전 검증 후 5분 세그먼트 촬영으로 결정
+- 2026-08-11 프로덕션 orchestrator 복구: launchctl kickstart → 첫 기동 스킵 재현 → bot-restart로 연결(882ms). 프로덕션 chat-claude는 애초에 없었음(8/10 밤 확인 — 충돌 이름은 orchestrator 하나였음)
 
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
@@ -125,3 +131,9 @@ SSH 접속로 상설: `ssh harness-test@localhost` (키·SACL·허용 규칙 구
 - `.claude/settings.local.json`(이 프로젝트) ssh/scp harness-test@localhost 허용 규칙 4종
 - `/Users/soonho/ai-folder/collab/CLAUDE.md` 봇 지침 블록에 다중 인원 채널 규칙 추가(마커 블록 내, 사용자 임시 아내 ID 규칙 276행~ 은 보존) — **적용은 collab 봇 재시작 후**
 - harness-test 상설 접속: `ssh harness-test@localhost` (BatchMode 무암호) · 진단 스크립트 /tmp/ft-*.sh(harness-test측, 임시)
+- `/Users/Shared/harness-e2e-script-corrections-2026-08-10.md` **정정 3호**(활성 이름 충돌 발견·0부 동명 세션 체크 추가·0.1.12 반영·첫 기동 스킵 별개 실존)
+- `plugins/harness-installer/skills/configure-harness/SKILL.md` 예열 절(DISCORD_STATE_DIR 2줄)+폴백 절(동명 세션 확인) — 커밋 1f03739(0.1.12), 푸시 완료
+- `plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json` 0.1.12 범프(같은 커밋)
+- harness-test `~/.zshrc` 맨 앞 compinit 선실행 블록(fpath에서 /usr/local/share/zsh* 제외) — 백업 `~/.zshrc.bak-compinit`
+- harness-test 상태(8/11 새벽): `~/discord-harness` 설치 유지(0.1.12)·`~/folder-bot-e2e` pair 완료·`~/.harness-e2e-backup` 토큰 백업 보존(foldertest 토큰은 백업에 없음 — 8/10 사용자가 직접 저장분 사용)·tmux는 ai+codex-live만
+- folder-bot botctl 경로: `~/.claude/plugins/cache/folder-bot/folder-bot/0.1.5/skills/configure-bot/generator/botctl.py` (harness-test)
