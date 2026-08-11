@@ -13,35 +13,28 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**본편 촬영 성공(8/10 밤, 설치기 0.1.12) — folder-bot 세그먼트만 미완.**
-6차 테이크 완주: 설치→verify 12/12→디스코드 실응답 4건+@멘션 실증. 8/10 격리
-2건: ①무로그 스킵 2번째 원인 = **본계정 동명 세션 활성 이름 충돌**(orchestrator —
-/exit로 내리니 즉시 연결, 정정 3호) ②예열 결함 = SKILL 예열 명령 DISCORD_STATE_DIR
-누락 → **0.1.12 출시**(1f03739). foldertest는 무로그 스킵 4연속(CT가 재기동 중
-kill-session 섞은 실수 → 리스 추정, ~90분 만료 대기 필요)으로 밤엔 포기 —
-익일 5분 세그먼트로. 프로덕션 orchestrator 복구 완료(bot-restart 판정 882ms).
-harness-test 현황: 하네스 설치 상태 유지, foldertest pair 완료(~/folder-bot-e2e),
-봇 세션들 /exit 완료(codex-live만 잔존, 무해).
+**촬영 전체 완료 + 4부 제거 테스트 통과(#27·#8) + Step 6·7 완료 — 남은 건 #9 이슈 보고와 이월분.**
+제거 테스트(8/11 오후, SSH): remove 1회 완주 — plist 6종 전량(스펙 5종+tui)·
+오버레이/블록/.gitignore 5줄/권한 파일 회수·보존 목록 유지·state 삭제(전 성공).
+#27 재진입 = 재실행 무해(크래시 없음·보존 유지). 관찰 2건은 0.1.13 이월 ④⑤.
+성공 촬영본 리네임: 2026-08-10_본편_설치-verify-실응답_성공.mov(1.2GB) ·
+2026-08-11_폴더봇-대시보드_성공.mov(464MB) — /Users/Shared/harness-e2e-recordings/.
+harness-test는 GUI 로그아웃·하네스 제거 완료(보존물만 잔존), foldertest 봇도 제거됨.
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-0. **foldertest 세그먼트 촬영(5분)** — 순서: ①CT가 오프카메라 사전 검증
-   (`zsh -lc "python3 <folder-bot 캐시>/botctl.py start --name foldertest"` →
-   registered 확인 → /exit — **SSH 맨 기동 금지, 반드시 zsh -lc**: 8/10 ENOENT
-   실측) ②"준비 완료" 신호 후 사용자 촬영: start→채널 `foldertest야 안녕`→
-   doctor→대시보드 폴더봇 카드 `ctx N%`(§6-2 종결 판정)→재시작 리추얼.
-   add·pair는 8/10 완료라 재실행 불필요(~/folder-bot-e2e pair 상태 유지).
-   판정 요령: MCP 로그 = ~/Library/Caches/claude-cli-nodejs/<폴더 mangled>/
-   mcp-logs-plugin-discord-discord/ — 파일 없음=리스(무로그 스킵)/registered
-   줄=성공. **켜기 전 본계정 동명 세션 확인**(`ps aux | grep '\-n '`) — 정정 3호.
-1. 4부 제거 테스트(#27 재진입·#8 판정) — 화면 밖, CT가 SSH로
-2. Step 6(release 커밋+푸시 — 기준은 **0.1.12**) + Step 7(아래 긱님 항목 잔존 확인)
-3. Claude Code 본체 이슈 보고(#9 계열) — 재료: rootcause 문서 + **8/10 추가분**
-   (활성 이름 충돌 = 무만료 리스 / 첫 기동 스킵은 이름 충돌 없어도 재현 —
-   프로덕션 kickstart에서도 재현, bot-restart로 수렴)
-4. 설치기 차기 이월(0.1.13 후보): ①preflight/verify 로컬 동명 세션 검사
+0. Claude Code 본체 이슈 보고(#9) — 재료: rootcause 문서 + 8/10~11 추가분.
+   **초안 작성 후 사용자 확인 받고 게시**(대외 행위)
+1. 영상 준비 인계 대응 — 정본: /Users/Shared/harness-e2e-script-notes-2026-08-11.md
+   (①첫 기동 스킵 서사화 ②Antigravity 사용량=환경 조건 ③토큰 노출 프레임:
+   편집 블러 + 게시 직전 Reset Token)
+2. 설치기 차기 이월(0.1.13 후보): ①preflight/verify 로컬 동명 세션 검사
    ②verify 무로그 스킵 진단 메시지에 이름 충돌 안내(다른 기기 포함)
+   ③pins.json plugins.folder-bot 0.1.1→0.1.5 정정(기록용 — plugin install은
+   버전 미지정 최신 설치라 기능 무관, 8/11 확인) ④remove 재실행 "이미 제거됨"
+   판정 부재(uninstall.sh 부재 WARN 영구 잔존) ⑤remove 재실행 로그 모순
+   ("상태 보존(state.json)" 출력인데 실제 파일 미생성)
 5. folder-bot 차기 이월: ①botctl stop을 /exit 정상 종료 방식으로(현 kill-session은
    유령 리스 생성 — 8/6 원인 격리) ②doctor MCP 판정 sessionId 기준 구분(8/6 완화만
    반영) ③eams 무조건 주입 여부 + 미신뢰 폴더 재현 실험(ct-reply §3.17)
@@ -87,6 +80,11 @@ harness-test 현황: 하네스 설치 상태 유지, foldertest pair 완료(~/fo
 - 2026-08-11 **6차(최종) 테이크 본편 성공**(0.1.12): 설치→verify→실응답 4건→@멘션 실증 완주. 첫 기동 무로그 스킵은 이름 충돌 없어도 재현(하네스 봇·프로덕션 kickstart 공히) → bot-restart 1회 수렴이 정상 경로로 재확인
 - 2026-08-11 foldertest 세그먼트 미완: add·pair·start 성공, 채널 연결만 무로그 스킵 4연속. 도중 CT가 SSH 맨 기동(PATH 없는 환경)으로 ENOENT 1회 유발 — **원격 기동은 반드시 `zsh -lc` 경유** 교훈. kill-session 1회 섞은 실수로 리스 생성 가능성 → 익일 사전 검증 후 5분 세그먼트 촬영으로 결정
 - 2026-08-11 프로덕션 orchestrator 복구: launchctl kickstart → 첫 기동 스킵 재현 → bot-restart로 연결(882ms). 프로덕션 chat-claude는 애초에 없었음(8/10 밤 확인 — 충돌 이름은 orchestrator 하나였음)
+- 2026-08-11 (오후) **foldertest 세그먼트 촬영 완료 = 촬영 전체 완료**. 설치부터 온카메라 원칙(사용자 정정: 백그라운드 설치 금지·대시보드 포함·순서는 폴더봇→대시보드). 리셋 절차 = /exit 선행 후 botctl remove(stop/remove는 kill-session 내장 — /exit 먼저가 필수) + 폴더 완전 초기화. 첫 기동 무로그 스킵 재현→재기동 1회 수렴(재확인). 리추얼 올바른 순서 = 마감 지시→답장(통지)→대시보드 ctx 리셋 확인→"이어서하자"(CT가 순서 앞당기는 실수 1회, 사용자 정정). 웹훅 통지는 folder-bot config 미설정이라 미촬영(선택 항목)
+- 2026-08-11 (오후 늦게) **4부 제거 테스트 통과**(GUI 로그아웃 상태, SSH): remove 1회 완주 — plist 6종 전량 제거(#8 스펙 5종+tui), CLAUDE.md 블록·.gitignore 5줄·권한 파일 2종·오버레이 스크립트 회수, .mcp.json엔 starter 소유 codex만 잔존(하네스 추가분 없음), 보존 목록(.env·.discord-state·chat/·tasks/·~/.config/usage-coach) 유지, state.json 삭제(전 항목 성공). #27 재진입 = 재실행 크래시 없음·보존 유지·WARN 2건(1차가 지운 repos의 uninstall.sh 부재)과 재진입 안내. 관찰 2건("이미 제거됨" 판정 부재 / "상태 보존" 로그와 실파일 불일치)은 0.1.13 이월 ④⑤ 등재. Step 7: 긱님 [약속] 항목 잔존 확인 완료. pins.json plugins.folder-bot=0.1.1은 낡은 기록(검증은 0.1.5)이나 plugin install이 버전 미지정이라 기능 무관 — 0.1.13 이월 ③
+- 2026-08-11 (오후) 성공 촬영본 2개 리네임 + 대본 노트 인계 파일 작성(harness-e2e-script-notes-2026-08-11.md — 토큰 노출 프레임 처리 절차 포함). Antigravity 사용량 미표시 원인 확정: codexbar는 해당 계정에서 Antigravity 실사용 이력이 있어야 읽음(본계정 정상 표시 실측·테스트 계정 미사용이라 생략 — 결함 아님)
+- 2026-08-11 (오후) 부수: 본계정 folder-bot 플러그인 0.1.0→0.1.5 업데이트(`claude plugin update folder-bot@folder-bot` — zzukumi 폴더 봇 생성 중 구버전 토큰 채팅 수급 절차 발견이 계기). claude-discord 릴레이 세션 다운→ctrl+C 종료 실측: **SIGINT는 리스 안 남김**, "원래 기동 명령 그대로 + --continue"로 대화 유지 재기동 성공(783ms registered)
+- 2026-08-11 (오전) foldertest 사전 검증 중 격리 2건: ①harness-test 재부팅으로 tmux 서버 소멸 + **GUI 세션 종료 → 키체인 잠김 → SSH 기동 봇이 "Not logged in"**(채널 연결 이전 단계 블로커 — 사용자 GUI 로그인 요청, claude-discord 경유) ②tmux 서버를 SSH에서 재기동할 땐 `zsh -lc`로도 bun ENOENT — bun PATH(~/.bun/bin)·~/.local/bin 주입이 전부 .zshrc(interactive 전용)에 있음 → **`zsh -ic` 경유로 확정**. 8/10 "zsh -lc면 충분" 실측은 tmux 서버가 정상 환경으로 이미 떠 있던 우연. 테스트 세션 2회 모두 /exit 정상 종료(리스 없음)
 
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
@@ -137,3 +135,5 @@ harness-test 현황: 하네스 설치 상태 유지, foldertest pair 완료(~/fo
 - harness-test `~/.zshrc` 맨 앞 compinit 선실행 블록(fpath에서 /usr/local/share/zsh* 제외) — 백업 `~/.zshrc.bak-compinit`
 - harness-test 상태(8/11 새벽): `~/discord-harness` 설치 유지(0.1.12)·`~/folder-bot-e2e` pair 완료·`~/.harness-e2e-backup` 토큰 백업 보존(foldertest 토큰은 백업에 없음 — 8/10 사용자가 직접 저장분 사용)·tmux는 ai+codex-live만
 - folder-bot botctl 경로: `~/.claude/plugins/cache/folder-bot/folder-bot/0.1.5/skills/configure-bot/generator/botctl.py` (harness-test)
+- `/Users/Shared/harness-e2e-script-notes-2026-08-11.md` **대본 처리 노트**(영상 준비 세션 인계용): ①첫 기동 스킵=Claude Code 본체 결함·재기동 1회 수렴·폴백 서사화 ②Antigravity 사용량 미표시=codexbar가 Antigravity 앱 실행 중에만 읽음(환경 조건, 결함 아님) ③리추얼 표준 순서
+- `/Users/Shared/harness-e2e-recordings/2026-08-11 14-04-29.mov` foldertest 세그먼트 녹화(14:04~14:43, 464MB)
