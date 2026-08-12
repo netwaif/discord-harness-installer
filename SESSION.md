@@ -13,25 +13,24 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**촬영 전체 완료 + 4부 제거 테스트 통과(#27·#8) + Step 6·7 완료 — 남은 건 #9 이슈 보고와 이월분.**
-제거 테스트(8/11 오후, SSH): remove 1회 완주 — plist 6종 전량(스펙 5종+tui)·
-오버레이/블록/.gitignore 5줄/권한 파일 회수·보존 목록 유지·state 삭제(전 성공).
-#27 재진입 = 재실행 무해(크래시 없음·보존 유지). 관찰 2건은 0.1.13 이월 ④⑤.
-성공 촬영본 리네임: 2026-08-10_본편_설치-verify-실응답_성공.mov(1.2GB) ·
-2026-08-11_폴더봇-대시보드_성공.mov(464MB) — /Users/Shared/harness-e2e-recordings/.
-녹화 폴더 정리 완료: 폐기 테이크 7개(~3.5GB) 프레임 전수 판독 후 _폐기테이크/로
-이동(편집 확정 후 사용자가 폴더째 삭제). 영상 준비 인계 노트 완비 + 사용자에게
-인계 문구 전달함. harness-test는 GUI 로그아웃·하네스 제거 완료(보존물만 잔존),
-foldertest 봇도 제거됨. 재개 지점 = #9 이슈 초안 작성(게시 전 사용자 확인).
+**#9 이슈 초안 작성 완료 — 게시 승인 대기.** 초안:
+`docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md`(영어 본문,
+3가지 격리 조건 — 유령 리스 90분/동명 활성 세션/첫 기동 스킵). 게시 전 확인
+3건(본문 승인·계정 언급 수위·게시 방식)이 초안 하단에 명시돼 있음.
+**영상 준비는 tower 세션으로 이관됨**(사용자 지시, 8/12): 인계 + 재료 5종
+(경로·수치·주의 2건) 전달 완료, tower가 ~/ai-folder/youtube/AgentLoops/
+discord-harness-installer/ 에 prep 완비. 멤버 전용 확정. 재개 지점 =
+#9 게시 승인 받으면 게시 + tower에 URL 회신, tower 매뉴얼 개정 원고 오면 검수.
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-0. Claude Code 본체 이슈 보고(#9) — 재료: rootcause 문서 + 8/10~11 추가분.
-   **초안 작성 후 사용자 확인 받고 게시**(대외 행위)
-1. 영상 준비 인계 대응 — 정본: /Users/Shared/harness-e2e-script-notes-2026-08-11.md
-   (①첫 기동 스킵 서사화 ②Antigravity 사용량=환경 조건 ③토큰 노출 프레임:
-   편집 블러 + 게시 직전 Reset Token)
+0. **#9 이슈 게시** — 초안 완성(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md),
+   사용자 승인 대기. 승인 받으면 게시(직접/gh 대행은 사용자 선택) →
+   tower 세션에 URL 회신(대본 메타 반영용, 그쪽 사용자 게이트 있음)
+1. tower 세션 매뉴얼 개정 원고 검수(오면) — v2.2 원본
+   (~/VSCodeWorkspace/discord-multiagent-manual/)·SESSION.md 결정 기록 대조,
+   "16장→스킬 1개" 서사에서 포탈 수동 단계 잔존 경계선 확인
 2. 설치기 차기 이월(0.1.13 후보): ①preflight/verify 로컬 동명 세션 검사
    ②verify 무로그 스킵 진단 메시지에 이름 충돌 안내(다른 기기 포함)
    ③pins.json plugins.folder-bot 0.1.1→0.1.5 정정(기록용 — plugin install은
@@ -88,6 +87,8 @@ foldertest 봇도 제거됨. 재개 지점 = #9 이슈 초안 작성(게시 전 
 - 2026-08-11 (오후 늦게) **4부 제거 테스트 통과**(GUI 로그아웃 상태, SSH): remove 1회 완주 — plist 6종 전량 제거(#8 스펙 5종+tui), CLAUDE.md 블록·.gitignore 5줄·권한 파일 2종·오버레이 스크립트 회수, .mcp.json엔 starter 소유 codex만 잔존(하네스 추가분 없음), 보존 목록(.env·.discord-state·chat/·tasks/·~/.config/usage-coach) 유지, state.json 삭제(전 항목 성공). #27 재진입 = 재실행 크래시 없음·보존 유지·WARN 2건(1차가 지운 repos의 uninstall.sh 부재)과 재진입 안내. 관찰 2건("이미 제거됨" 판정 부재 / "상태 보존" 로그와 실파일 불일치)은 0.1.13 이월 ④⑤ 등재. Step 7: 긱님 [약속] 항목 잔존 확인 완료. pins.json plugins.folder-bot=0.1.1은 낡은 기록(검증은 0.1.5)이나 plugin install이 버전 미지정이라 기능 무관 — 0.1.13 이월 ③
 - 2026-08-11 (오후) 성공 촬영본 2개 리네임 + 대본 노트 인계 파일 작성(harness-e2e-script-notes-2026-08-11.md — 토큰 노출 프레임 처리 절차 포함). Antigravity 사용량 미표시 원인 확정: codexbar는 해당 계정에서 Antigravity 실사용 이력이 있어야 읽음(본계정 정상 표시 실측·테스트 계정 미사용이라 생략 — 결함 아님)
 - 2026-08-11 (오후) 부수: 본계정 folder-bot 플러그인 0.1.0→0.1.5 업데이트(`claude plugin update folder-bot@folder-bot` — zzukumi 폴더 봇 생성 중 구버전 토큰 채팅 수급 절차 발견이 계기). claude-discord 릴레이 세션 다운→ctrl+C 종료 실측: **SIGINT는 리스 안 남김**, "원래 기동 명령 그대로 + --continue"로 대화 유지 재기동 성공(783ms registered)
+- 2026-08-12 #9 이슈 초안 작성(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md) — 격리 조건 3종(유령 리스 ~90분 TTL·/exit·SIGINT 무리스 / 동명 활성 세션 무만료 / 첫 기동 스킵 무충돌 재현) + E1~E6 압축표 + 핵심 요구 "스킵 사유 로그". 게시 전 확인 3건(본문·계정 언급 수위·게시 방식) 사용자 대기
+- 2026-08-12 영상 준비 tower 세션 이관(사용자 지시) — 인계(정본 노트·녹화본·처리 3건) + 재료 5종 회신(설치기 경로/이력 정본/매뉴얼 v2.2 소스=~/VSCodeWorkspace/discord-multiagent-manual/(VERSION 2.2, index.html 소스)/실측 수치/#9 초안 경로). 규율 2건 tower 채점표 반영: ①folder-bot 언급은 0.1.5(pins 0.1.1은 낡은 기록 — 대본에 0.1.1 나오면 FAIL) ②#9 "게시된 이슈" 표현 금지. verify 12개 구성 = 봇 MCP 2+브리지 로그 2+데몬 2+TUI 1+tmux 2+plist 2+웹훅 1(정본: shooting-script 154행·harnessctl.py:746). 매뉴얼 개정 원고 검수 약속(tower가 원고 공유 예정, index.html 무접촉·텍스트 원고까지만). 영상은 멤버 전용 확정, 제작은 ~/ai-folder/youtube/AgentLoops/discord-harness-installer/ 그래프 방식
 - 2026-08-11 (오전) foldertest 사전 검증 중 격리 2건: ①harness-test 재부팅으로 tmux 서버 소멸 + **GUI 세션 종료 → 키체인 잠김 → SSH 기동 봇이 "Not logged in"**(채널 연결 이전 단계 블로커 — 사용자 GUI 로그인 요청, claude-discord 경유) ②tmux 서버를 SSH에서 재기동할 땐 `zsh -lc`로도 bun ENOENT — bun PATH(~/.bun/bin)·~/.local/bin 주입이 전부 .zshrc(interactive 전용)에 있음 → **`zsh -ic` 경유로 확정**. 8/10 "zsh -lc면 충분" 실측은 tmux 서버가 정상 환경으로 이미 떠 있던 우연. 테스트 세션 2회 모두 /exit 정상 종료(리스 없음)
 
 ## 파일 흔적
@@ -142,3 +143,4 @@ foldertest 봇도 제거됨. 재개 지점 = #9 이슈 초안 작성(게시 전 
 - `/Users/Shared/harness-e2e-script-notes-2026-08-11.md` **대본 처리 노트**(영상 준비 세션 인계 정본): ⓪토큰 노출 프레임 = 편집 블러+게시 직전 Reset Token ①첫 기동 스킵=Claude Code 본체 결함·재기동 1회 수렴·폴백 서사화 ②Antigravity 사용량 미표시=해당 계정 실사용 이력 필요(환경 조건, 결함 아님) ③리추얼 표준 순서 ④파일 구성(_폐기테이크 포함)·정정 2·3호 포인터
 - `/Users/Shared/harness-e2e-recordings/` 최종 구성: 성공본 2(리네임) + 포탈 소스 2(한글명, 사용자 촬영) + `_폐기테이크/` 7개
 - `/Users/Shared/harness-e2e-recordings/2026-08-11 14-04-29.mov` foldertest 세그먼트 녹화(14:04~14:43, 464MB)
+- `docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md` #9 이슈 초안(영어 본문 + 게시 전 확인 3건 절 — 게시 시 하단 한국어 절 삭제)
