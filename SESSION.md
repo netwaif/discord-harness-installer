@@ -13,14 +13,13 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**#9 이슈 초안 작성 완료 — 게시 승인 대기.** 초안:
-`docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md`(영어 본문,
-3가지 격리 조건 — 유령 리스 90분/동명 활성 세션/첫 기동 스킵). 게시 전 확인
-3건(본문 승인·계정 언급 수위·게시 방식)이 초안 하단에 명시돼 있음.
-**영상 준비는 tower 세션으로 이관됨**(사용자 지시, 8/12): 인계 + 재료 5종
-(경로·수치·주의 2건) 전달 완료, tower가 ~/ai-folder/youtube/AgentLoops/
-discord-harness-installer/ 에 prep 완비. 멤버 전용 확정. 재개 지점 =
-#9 게시 승인 받으면 게시 + tower에 URL 회신, tower 매뉴얼 개정 원고 오면 검수.
+**#9 이슈 초안은 여전히 게시 승인 대기**(8/15 확인 질문에 사용자가 보류 —
+초안: docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
+**8/14~15 세션은 Hostinger VPS 3봇 체제 구축으로 전환·완료**: 서버
+(srv1884693.hstgr.cloud, hermes 컨테이너)에 claude/codex/agy 디스코드 봇
+3종 설치·연결·실응답 검증 완료 + 호스트 systemd 자동 복구(세션 4종). 상세는
+8/14~15 결정 기록. 영상 준비는 tower 이관 유지(8/12). 재개 지점 = #9 게시
+승인 시 게시 + tower URL 회신, tower 매뉴얼 개정 원고 오면 검수.
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
@@ -89,6 +88,8 @@ discord-harness-installer/ 에 prep 완비. 멤버 전용 확정. 재개 지점 
 - 2026-08-11 (오후) 부수: 본계정 folder-bot 플러그인 0.1.0→0.1.5 업데이트(`claude plugin update folder-bot@folder-bot` — zzukumi 폴더 봇 생성 중 구버전 토큰 채팅 수급 절차 발견이 계기). claude-discord 릴레이 세션 다운→ctrl+C 종료 실측: **SIGINT는 리스 안 남김**, "원래 기동 명령 그대로 + --continue"로 대화 유지 재기동 성공(783ms registered)
 - 2026-08-12 #9 이슈 초안 작성(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md) — 격리 조건 3종(유령 리스 ~90분 TTL·/exit·SIGINT 무리스 / 동명 활성 세션 무만료 / 첫 기동 스킵 무충돌 재현) + E1~E6 압축표 + 핵심 요구 "스킵 사유 로그". 게시 전 확인 3건(본문·계정 언급 수위·게시 방식) 사용자 대기
 - 2026-08-12 영상 준비 tower 세션 이관(사용자 지시) — 인계(정본 노트·녹화본·처리 3건) + 재료 5종 회신(설치기 경로/이력 정본/매뉴얼 v2.2 소스=~/VSCodeWorkspace/discord-multiagent-manual/(VERSION 2.2, index.html 소스)/실측 수치/#9 초안 경로). 규율 2건 tower 채점표 반영: ①folder-bot 언급은 0.1.5(pins 0.1.1은 낡은 기록 — 대본에 0.1.1 나오면 FAIL) ②#9 "게시된 이슈" 표현 금지. verify 12개 구성 = 봇 MCP 2+브리지 로그 2+데몬 2+TUI 1+tmux 2+plist 2+웹훅 1(정본: shooting-script 154행·harnessctl.py:746). 매뉴얼 개정 원고 검수 약속(tower가 원고 공유 예정, index.html 무접촉·텍스트 원고까지만). 영상은 멤버 전용 확정, 제작은 ~/ai-folder/youtube/AgentLoops/discord-harness-installer/ 그래프 방식
+- 2026-08-14~15 **Hostinger VPS 3봇 체제 구축 완료**(설치기 프로젝트 외 부업 — 사용자 지시). 서버 `ssh -i ~/.ssh/hostinger root@srv1884693.hstgr.cloud`, Ubuntu 24.04, 작업 대상은 `hermes-agent-iqxn-hermes-agent-1` 컨테이너(Debian 13, hermes uid 10000, HOME=/opt/data ← 호스트 /docker/hermes-agent-iqxn/data 바인드 마운트 = 영속). 설치기(harnessctl)는 darwin 전용이라 미사용 — 수동 경량 설치. 구성: ①로케일 POSIX→C.UTF-8(.profile/.bashrc, tmux -u — 박스문자 ACS 깨짐 해소) ②claude 네이티브 2.1.233 ~/.local/bin(npm 프리픽스 auto-update 실패 해소) ③hostinger-bot = claude `-n hostinger-bot --permission-mode auto --channels plugin:discord@claude-plugins-official`, DISCORD_STATE_DIR=/opt/data/discord-bot/.discord-state, requireMention true ④codex 0.147.0(npm --prefix ~/.local) + auth.json 맥 복사("Logged in using ChatGPT") + codex-discord v0.1.4 클론 /opt/data/codex-discord, .env headless(TUI 없음)+NAME_TRIGGER_CHANNEL_IDS 호명 게이트 ⑤agy 공식 스크립트 설치 + OAuth 코드 붙여넣기 플로우 로그인(콜백이 antigravity.google/oauth-callback라 헤드리스 가능) + .env.gemini(ENGINE=agy, 호명 "제미나이", DATA_DIR=data-gemini) ⑥호스트 systemd `claude-bridge.service` + `/usr/local/sbin/claude-bridge-watch.sh` — docker events(`{{.Action}}` — 신버전 `.Status` 없음) 감시로 tmux 세션 4종(claude-bridge/hostinger-bot/codex-bridge/gemini-bridge) 자동 복구. 3봇 모두 실응답 검증 완료(사용자 확인). 채널 1537467414705471640 공유, 허용 사용자 1062698028051472516
+- 2026-08-15 부속 결정·관찰: ①봇 토큰 3종은 각각 새 디스코드 앱(맥 토큰 재사용 금지 — 게이트웨이 이중 접속) ②서버 세션 이름은 맥과 불충돌 확인(hostinger-bot 등) ③분류기 차단 다수(access.json 작성·자격증명 전송·curl|bash) — 사용자 "다시 해봐" 재승인 후 통과 or 사용자 pane 직접 실행 관례 유지 ④약점 1건 잔존: 컨테이너 재시작 = claude 강제 종료라 hostinger-bot만 유령 리스(~90분)/첫 기동 무로그 스킵 가능(증상 = 멘션 무응답, 대응 = 재기동 1회/리스 만료 대기). 재시작 실증 테스트는 사용자 지시로 안 함("나중에 안되면 다시 부르면 되잖아") ⑤hermes 컨테이너 apt 설치분(unzip·nvim)만 재생성 시 소실(운영 무관)
 - 2026-08-11 (오전) foldertest 사전 검증 중 격리 2건: ①harness-test 재부팅으로 tmux 서버 소멸 + **GUI 세션 종료 → 키체인 잠김 → SSH 기동 봇이 "Not logged in"**(채널 연결 이전 단계 블로커 — 사용자 GUI 로그인 요청, claude-discord 경유) ②tmux 서버를 SSH에서 재기동할 땐 `zsh -lc`로도 bun ENOENT — bun PATH(~/.bun/bin)·~/.local/bin 주입이 전부 .zshrc(interactive 전용)에 있음 → **`zsh -ic` 경유로 확정**. 8/10 "zsh -lc면 충분" 실측은 tmux 서버가 정상 환경으로 이미 떠 있던 우연. 테스트 세션 2회 모두 /exit 정상 종료(리스 없음)
 
 ## 파일 흔적
@@ -144,3 +145,5 @@ discord-harness-installer/ 에 prep 완비. 멤버 전용 확정. 재개 지점 
 - `/Users/Shared/harness-e2e-recordings/` 최종 구성: 성공본 2(리네임) + 포탈 소스 2(한글명, 사용자 촬영) + `_폐기테이크/` 7개
 - `/Users/Shared/harness-e2e-recordings/2026-08-11 14-04-29.mov` foldertest 세그먼트 녹화(14:04~14:43, 464MB)
 - `docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md` #9 이슈 초안(영어 본문 + 게시 전 확인 3건 절 — 게시 시 하단 한국어 절 삭제)
+- Hostinger 호스트: `/etc/systemd/system/claude-bridge.service` + `/usr/local/sbin/claude-bridge-watch.sh`(ensure 4세션, docker events 감시 — 로컬 사본은 세션 scratchpad라 소멸, 정본은 서버)
+- Hostinger 컨테이너(/opt/data): `.profile`·`.bashrc`(LANG=C.UTF-8, PATH: .local/bin·.bun/bin) / `.local/bin/{claude,agy}`·codex(npm prefix) / `discord-bot/.discord-state/{.env,access.json}` / `codex-discord/{.env,.env.gemini}`(v0.1.4, node --env-file로 기동) / `.codex/auth.json`(맥 복사본) / 작업폴더 `codex-workspace`·`agy-workspace`
