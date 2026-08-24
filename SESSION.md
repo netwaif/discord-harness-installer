@@ -13,17 +13,26 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**#9 이슈 초안은 여전히 게시 승인 대기**(8/15 확인 질문에 사용자가 보류 —
-초안: docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
-**8/14~15 세션은 Hostinger VPS 3봇 체제 구축으로 전환·완료**: 서버
-(srv1884693.hstgr.cloud, hermes 컨테이너)에 claude/codex/agy 디스코드 봇
-3종 설치·연결·실응답 검증 완료 + 호스트 systemd 자동 복구(세션 4종). 상세는
-8/14~15 결정 기록. 영상 준비는 tower 이관 유지(8/12). 재개 지점 = #9 게시
-승인 시 게시 + tower URL 회신, tower 매뉴얼 개정 원고 오면 검수.
+**8/24 세션은 커뮤니티 Q&A 대응**: bagbio1748님 디스코드 질문(폴더봇·채널
+관계) 답변 게시 완료 + 추가 질문(이해 확인) 교정 답변 게시 완료. **연속 답글
+초안 1건 게시 승인 대기**("기존 클로드 코드를 디스코드 UI로" 설명 + 상주·무인
+승인 2가지 차이 — 8/24 결정 기록 참조). **#9 이슈 초안도 여전히 게시 승인
+대기**(초안: docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
+영상 준비는 tower 이관 유지(8/12). 재개 지점 = 연속 답글 게시 여부 확인,
+#9 게시 승인 시 게시 + tower URL 회신, tower 매뉴얼 개정 원고 오면 검수.
+유튜브 미답글 2건 관찰(다음 단계 0.5).
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
+-1. **bagbio1748님 연속 답글 게시 승인 대기** — 초안 확정본은 8/24 결정 기록에
+   전문 수록. 승인 시 채널 1519510111083561021, 답글 id 1541111390444724275
+   스레드에 게시(검수 문구 생략 상태 — 필요 시 추가)
+0.5. 유튜브 미답글 2건: ①B0KZOfXj6z0 박일용님 "맥에서만 되나요? 윈도우에서는
+   안되나요?"(8/24 발견) — 기존 답변 관례(v40AFadpg4w Hodoo307님 답글: WSL2 안내)
+   재사용 가능 ②_hZ5mozId_0(그래프 엔지니어링 영상) @202-z7g "매뉴얼
+   부탁드리겠습니다!" / 풍류왕 "윈도우로 되나용?"은 사용자가 직접 답글 완료,
+   스레드 위치 미특정(조회 중단됨)
 0. **#9 이슈 게시** — 초안 완성(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md),
    사용자 승인 대기. 승인 받으면 게시(직접/gh 대행은 사용자 선택) →
    tower 세션에 URL 회신(대본 메타 반영용, 그쪽 사용자 게이트 있음)
@@ -42,6 +51,7 @@
    ④봇 세션 수동 재기동 UX — 맨 claude 기동 오용 감지/안내(8/6 실사용 사고)
 6. 차기 이월분 기록 유지: #18/#19/#20/#21/#25(remove 품질)·#16(brew prefix 검사)·
    bot-up 락 240s 증폭(상류)·"수다 봇 폴더 하위 분리"는 d10e6f9로 해소됨
+7. **[약속] 대시보드에 봇·폴더·채널 매핑 표시** — bagbio1748님 블랙박스화 우려에 "다음 업데이트 후보로 적어두겠다" 공개 답변(2026-08-24, 채널 1519510111083561021 답글 1541256639401820301). bots.json 정본을 대시보드에 노출하는 방향
 5. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
 
 ## 결정 기록
@@ -90,6 +100,9 @@
 - 2026-08-12 영상 준비 tower 세션 이관(사용자 지시) — 인계(정본 노트·녹화본·처리 3건) + 재료 5종 회신(설치기 경로/이력 정본/매뉴얼 v2.2 소스=~/VSCodeWorkspace/discord-multiagent-manual/(VERSION 2.2, index.html 소스)/실측 수치/#9 초안 경로). 규율 2건 tower 채점표 반영: ①folder-bot 언급은 0.1.5(pins 0.1.1은 낡은 기록 — 대본에 0.1.1 나오면 FAIL) ②#9 "게시된 이슈" 표현 금지. verify 12개 구성 = 봇 MCP 2+브리지 로그 2+데몬 2+TUI 1+tmux 2+plist 2+웹훅 1(정본: shooting-script 154행·harnessctl.py:746). 매뉴얼 개정 원고 검수 약속(tower가 원고 공유 예정, index.html 무접촉·텍스트 원고까지만). 영상은 멤버 전용 확정, 제작은 ~/ai-folder/youtube/AgentLoops/discord-harness-installer/ 그래프 방식
 - 2026-08-14~15 **Hostinger VPS 3봇 체제 구축 완료**(설치기 프로젝트 외 부업 — 사용자 지시). 서버 `ssh -i ~/.ssh/hostinger root@srv1884693.hstgr.cloud`, Ubuntu 24.04, 작업 대상은 `hermes-agent-iqxn-hermes-agent-1` 컨테이너(Debian 13, hermes uid 10000, HOME=/opt/data ← 호스트 /docker/hermes-agent-iqxn/data 바인드 마운트 = 영속). 설치기(harnessctl)는 darwin 전용이라 미사용 — 수동 경량 설치. 구성: ①로케일 POSIX→C.UTF-8(.profile/.bashrc, tmux -u — 박스문자 ACS 깨짐 해소) ②claude 네이티브 2.1.233 ~/.local/bin(npm 프리픽스 auto-update 실패 해소) ③hostinger-bot = claude `-n hostinger-bot --permission-mode auto --channels plugin:discord@claude-plugins-official`, DISCORD_STATE_DIR=/opt/data/discord-bot/.discord-state, requireMention true ④codex 0.147.0(npm --prefix ~/.local) + auth.json 맥 복사("Logged in using ChatGPT") + codex-discord v0.1.4 클론 /opt/data/codex-discord, .env headless(TUI 없음)+NAME_TRIGGER_CHANNEL_IDS 호명 게이트 ⑤agy 공식 스크립트 설치 + OAuth 코드 붙여넣기 플로우 로그인(콜백이 antigravity.google/oauth-callback라 헤드리스 가능) + .env.gemini(ENGINE=agy, 호명 "제미나이", DATA_DIR=data-gemini) ⑥호스트 systemd `claude-bridge.service` + `/usr/local/sbin/claude-bridge-watch.sh` — docker events(`{{.Action}}` — 신버전 `.Status` 없음) 감시로 tmux 세션 4종(claude-bridge/hostinger-bot/codex-bridge/gemini-bridge) 자동 복구. 3봇 모두 실응답 검증 완료(사용자 확인). 채널 1537467414705471640 공유, 허용 사용자 1062698028051472516
 - 2026-08-15 부속 결정·관찰: ①봇 토큰 3종은 각각 새 디스코드 앱(맥 토큰 재사용 금지 — 게이트웨이 이중 접속) ②서버 세션 이름은 맥과 불충돌 확인(hostinger-bot 등) ③분류기 차단 다수(access.json 작성·자격증명 전송·curl|bash) — 사용자 "다시 해봐" 재승인 후 통과 or 사용자 pane 직접 실행 관례 유지 ④약점 1건 잔존: 컨테이너 재시작 = claude 강제 종료라 hostinger-bot만 유령 리스(~90분)/첫 기동 무로그 스킵 가능(증상 = 멘션 무응답, 대응 = 재기동 1회/리스 만료 대기). 재시작 실증 테스트는 사용자 지시로 안 함("나중에 안되면 다시 부르면 되잖아") ⑤hermes 컨테이너 apt 설치분(unzip·nvim)만 재생성 시 소실(운영 무관)
+- 2026-08-24 bagbio1748님 Q&A 대응(채널 1519510111083561021): ①본질문(폴더봇 프로젝트 생성·디렉토리↔채널 관계) 답변 게시(답글 id 1541256639401820301, 검수 3회 반영 — "좋은 질문 감사" 서두/tasks vs 프로젝트 폴더 분리 기준/토큰 재사용 금지 문단 평이화/불필요 문장 삭제) ②추가 질문(이해 확인) 교정 답변 게시(사용자가 직접 게시 — 교정 요지: claude·codex·agy 봇이 폴더봇을 매개로 다른 프로젝트 접근한다는 이해는 오류, 하네스 3봇과 폴더 봇은 독립 축) ③"기존 클로드 코드를 디스코드 UI로 사용" 설명 검증 요청 → 맞다 판정(기동 명령 실체가 claude --channels) + 뉘앙스 2건(상주 데몬/무인 승인) ④연속 답글 초안 작성 — **게시 승인 대기 중 세션 마감**. 초안 전문: "덧붙이면, 그냥 기존의 클로드 코드를 디스코드 UI를 통해서 사용한다고 이해하시면 쉽습니다. 비유가 아니라 실체가 그렇습니다 — 봇 기동 명령이 말 그대로 터미널에서 쓰는 그 claude에 디스코드 연결 옵션을 붙인 것이라서요. 터미널과 다른 점은 두 가지뿐입니다. 1. 항상 켜져 있습니다 — 데몬으로 상주해서 컴퓨터를 재부팅해도 자동으로 다시 뜹니다. 2. 무인 승인으로 돕니다 — 터미널처럼 매번 권한 승인을 클릭하지 않아도 됩니다."
+- 2026-08-24 [약속] 등재: 대시보드에 봇·폴더·채널 매핑 표시(bagbio1748님 블랙박스화 우려 답변에서 공개 약속 — 다음 단계 7번)
+- 2026-08-24 유튜브 관찰: 풍류왕 "윈도우로 되나용?" 댓글은 사용자가 직접 답글(초안 제공: 설치기 맥 전용+WSL2 수동 가능성+미검증 명시). 채널 전체 "윈도우" 검색으로 미답글 발견 — B0KZOfXj6z0 박일용님 건(다음 단계 0.5). 윈도우 질문 기존 답변 관례 = WSL2 안내(v40AFadpg4w) 또는 미검증 솔직 고지(0ScISw3Wuv8)
 - 2026-08-11 (오전) foldertest 사전 검증 중 격리 2건: ①harness-test 재부팅으로 tmux 서버 소멸 + **GUI 세션 종료 → 키체인 잠김 → SSH 기동 봇이 "Not logged in"**(채널 연결 이전 단계 블로커 — 사용자 GUI 로그인 요청, claude-discord 경유) ②tmux 서버를 SSH에서 재기동할 땐 `zsh -lc`로도 bun ENOENT — bun PATH(~/.bun/bin)·~/.local/bin 주입이 전부 .zshrc(interactive 전용)에 있음 → **`zsh -ic` 경유로 확정**. 8/10 "zsh -lc면 충분" 실측은 tmux 서버가 정상 환경으로 이미 떠 있던 우연. 테스트 세션 2회 모두 /exit 정상 종료(리스 없음)
 
 ## 파일 흔적
