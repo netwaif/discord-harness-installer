@@ -13,11 +13,11 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**8/24 세션은 커뮤니티 Q&A 대응**: bagbio1748님 디스코드 질문(폴더봇·채널
-관계) 답변 게시 완료 + 추가 질문(이해 확인) 교정 답변 게시 완료. **연속 답글
-초안 1건 게시 승인 대기**("기존 클로드 코드를 디스코드 UI로" 설명 + 상주·무인
-승인 2가지 차이 — 8/24 결정 기록 참조). **#9 이슈 초안도 여전히 게시 승인
-대기**(초안: docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
+**8/26 세션은 수다채널 코덱스 브리지 핫픽스**: codex 0.149.0 롤아웃 포맷
+변경으로 TUI→디스코드 릴레이 단절 → codex-discord v0.1.5 + 설치기 0.1.13
+릴리즈·푸시, 프로덕션 복구·실응답 검증, 커뮤니티 공지 게시까지 완료
+(8/26 결정 기록 참조). **연속 답글 초안 1건·#9 이슈 초안 게시 승인 대기
+유지**(8/24 결정 기록·docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
 영상 준비는 tower 이관 유지(8/12). 재개 지점 = 연속 답글 게시 여부 확인,
 #9 게시 승인 시 게시 + tower URL 회신, tower 매뉴얼 개정 원고 오면 검수.
 유튜브 미답글 2건 관찰(다음 단계 0.5).
@@ -39,7 +39,7 @@
 1. tower 세션 매뉴얼 개정 원고 검수(오면) — v2.2 원본
    (~/VSCodeWorkspace/discord-multiagent-manual/)·SESSION.md 결정 기록 대조,
    "16장→스킬 1개" 서사에서 포탈 수동 단계 잔존 경계선 확인
-2. 설치기 차기 이월(0.1.13 후보): ①preflight/verify 로컬 동명 세션 검사
+2. 설치기 차기 이월(0.1.14 후보 — 0.1.13은 8/26 핫픽스로 소진): ①preflight/verify 로컬 동명 세션 검사
    ②verify 무로그 스킵 진단 메시지에 이름 충돌 안내(다른 기기 포함)
    ③pins.json plugins.folder-bot 0.1.1→0.1.5 정정(기록용 — plugin install은
    버전 미지정 최신 설치라 기능 무관, 8/11 확인) ④remove 재실행 "이미 제거됨"
@@ -103,6 +103,7 @@
 - 2026-08-24 bagbio1748님 Q&A 대응(채널 1519510111083561021): ①본질문(폴더봇 프로젝트 생성·디렉토리↔채널 관계) 답변 게시(답글 id 1541256639401820301, 검수 3회 반영 — "좋은 질문 감사" 서두/tasks vs 프로젝트 폴더 분리 기준/토큰 재사용 금지 문단 평이화/불필요 문장 삭제) ②추가 질문(이해 확인) 교정 답변 게시(사용자가 직접 게시 — 교정 요지: claude·codex·agy 봇이 폴더봇을 매개로 다른 프로젝트 접근한다는 이해는 오류, 하네스 3봇과 폴더 봇은 독립 축) ③"기존 클로드 코드를 디스코드 UI로 사용" 설명 검증 요청 → 맞다 판정(기동 명령 실체가 claude --channels) + 뉘앙스 2건(상주 데몬/무인 승인) ④연속 답글 초안 작성 — **게시 승인 대기 중 세션 마감**. 초안 전문: "덧붙이면, 그냥 기존의 클로드 코드를 디스코드 UI를 통해서 사용한다고 이해하시면 쉽습니다. 비유가 아니라 실체가 그렇습니다 — 봇 기동 명령이 말 그대로 터미널에서 쓰는 그 claude에 디스코드 연결 옵션을 붙인 것이라서요. 터미널과 다른 점은 두 가지뿐입니다. 1. 항상 켜져 있습니다 — 데몬으로 상주해서 컴퓨터를 재부팅해도 자동으로 다시 뜹니다. 2. 무인 승인으로 돕니다 — 터미널처럼 매번 권한 승인을 클릭하지 않아도 됩니다."
 - 2026-08-24 [약속] 등재: 대시보드에 봇·폴더·채널 매핑 표시(bagbio1748님 블랙박스화 우려 답변에서 공개 약속 — 다음 단계 7번)
 - 2026-08-24 유튜브 관찰: 풍류왕 "윈도우로 되나용?" 댓글은 사용자가 직접 답글(초안 제공: 설치기 맥 전용+WSL2 수동 가능성+미검증 명시). 채널 전체 "윈도우" 검색으로 미답글 발견 — B0KZOfXj6z0 박일용님 건(다음 단계 0.5). 윈도우 질문 기존 답변 관례 = WSL2 안내(v40AFadpg4w) 또는 미검증 솔직 고지(0ScISw3Wuv8)
+- 2026-08-26 **수다채널 코덱스 무응답 원인 격리·핫픽스 릴리즈**: codex CLI 0.149.0 자동 업데이트로 롤아웃에서 event_msg agent_message 소멸(0.146 실물엔 존재, 0.149 세션엔 0건) → 브리지 tail이 아무것도 못 뽑아 릴레이만 무증상 소실(주입·TUI 응답 생성은 정상, agy는 tail 미사용이라 정상). 수정 = extractAgentMessages 매처를 response_item(role=assistant)로 교체 — 0.146~0.149 전 구간 동일 텍스트 기록 실물 검증(event==resp), 구포맷 두 소스 공존 시 중복 게시 배제. codex-discord v0.1.5(f09c7fc, 테스트 63 통과) + 설치기 0.1.13(fed3851, pins codex-discord v0.1.5, 테스트 42 통과) 푸시. 프로덕션 데몬 kickstart 복구, 사용자 실응답 검증(00:39). 공지 게시: 채널 1522490241859059784, 메시지 id 1541837270884024500 — 기존 설치자 업데이트 안내는 "클로드 코드에 지침 붙여넣기" 방식(수동 git checkout 3줄은 state.json 불일치로 verify 오판 유발이라 기각, 정식 경로 = plugin update→fetch 재실행이 멱등). 부속 확인: tail은 연결 시점 이후 append만 릴레이(과거분 재게시 방지 설계) / Hostinger headless 구성은 TUI tail 경로 미사용이라 무관 / 0.1.13 이월분 ①~⑤는 0.1.14 후보로 명칭 이월
 - 2026-08-11 (오전) foldertest 사전 검증 중 격리 2건: ①harness-test 재부팅으로 tmux 서버 소멸 + **GUI 세션 종료 → 키체인 잠김 → SSH 기동 봇이 "Not logged in"**(채널 연결 이전 단계 블로커 — 사용자 GUI 로그인 요청, claude-discord 경유) ②tmux 서버를 SSH에서 재기동할 땐 `zsh -lc`로도 bun ENOENT — bun PATH(~/.bun/bin)·~/.local/bin 주입이 전부 .zshrc(interactive 전용)에 있음 → **`zsh -ic` 경유로 확정**. 8/10 "zsh -lc면 충분" 실측은 tmux 서버가 정상 환경으로 이미 떠 있던 우연. 테스트 세션 2회 모두 /exit 정상 종료(리스 없음)
 
 ## 파일 흔적
@@ -159,4 +160,6 @@
 - `/Users/Shared/harness-e2e-recordings/2026-08-11 14-04-29.mov` foldertest 세그먼트 녹화(14:04~14:43, 464MB)
 - `docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md` #9 이슈 초안(영어 본문 + 게시 전 확인 3건 절 — 게시 시 하단 한국어 절 삭제)
 - Hostinger 호스트: `/etc/systemd/system/claude-bridge.service` + `/usr/local/sbin/claude-bridge-watch.sh`(ensure 4세션, docker events 감시 — 로컬 사본은 세션 scratchpad라 소멸, 정본은 서버)
+- 상류 `~/ai-folder/dev/codex-discord/src/rollout.mjs` extractAgentMessages를 response_item(role=assistant, content output_text join) 매처로 교체 + `test/rollout.test.mjs`(픽스처·tail 테스트 신포맷화, 구포맷 event_msg 공존 시 중복 없음 검증) + `test/fixtures/rollout-sample.jsonl`(0.149 형태 response_item 줄 추가) — 커밋 f09c7fc, 태그 v0.1.5 푸시
+- `plugins/harness-installer/skills/configure-harness/generator/pins.json` codex-discord v0.1.4→v0.1.5 + `plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json` 0.1.13 범프 — 커밋 fed3851 푸시
 - Hostinger 컨테이너(/opt/data): `.profile`·`.bashrc`(LANG=C.UTF-8, PATH: .local/bin·.bun/bin) / `.local/bin/{claude,agy}`·codex(npm prefix) / `discord-bot/.discord-state/{.env,access.json}` / `codex-discord/{.env,.env.gemini}`(v0.1.4, node --env-file로 기동) / `.codex/auth.json`(맥 복사본) / 작업폴더 `codex-workspace`·`agy-workspace`
