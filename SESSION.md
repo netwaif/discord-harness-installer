@@ -13,11 +13,13 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**8/26 세션은 수다채널 코덱스 브리지 핫픽스**: codex 0.149.0 롤아웃 포맷
-변경으로 TUI→디스코드 릴레이 단절 → codex-discord v0.1.5 + 설치기 0.1.13
-릴리즈·푸시, 프로덕션 복구·실응답 검증, 커뮤니티 공지 게시까지 완료
-(8/26 결정 기록 참조). **연속 답글 초안 1건·#9 이슈 초안 게시 승인 대기
-유지**(8/24 결정 기록·docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
+**8/26 2차 세션은 디스코드 서버 이설**: 에이전트 채널 전부를 AI 치트키
+멤버십 서버 → 개인 netwaif 서버(1111493736631898195)로 이전 완료 —
+봇 6종 초대·채널 매핑·설정 6곳 치환·브리지/대시보드 재기동·멘션 테스트
+전건 통과(8/26 이설 결정 기록 참조). 클로드 세션들은 무재기동(access.json
+라이브 반영 실증 — 컨텍스트 손실 0). zzukumi 봇·VPS 3봇은 옛 구성 그대로.
+**연속 답글 초안 1건·#9 이슈 초안 게시 승인 대기 유지**(8/24 결정 기록·
+docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
 영상 준비는 tower 이관 유지(8/12). 재개 지점 = 연속 답글 게시 여부 확인,
 #9 게시 승인 시 게시 + tower URL 회신, tower 매뉴얼 개정 원고 오면 검수.
 유튜브 미답글 2건 관찰(다음 단계 0.5).
@@ -33,6 +35,9 @@
    재사용 가능 ②_hZ5mozId_0(그래프 엔지니어링 영상) @202-z7g "매뉴얼
    부탁드리겠습니다!" / 풍류왕 "윈도우로 되나용?"은 사용자가 직접 답글 완료,
    스레드 위치 미특정(조회 중단됨)
+0.7. 서버 이설 뒤처리 확인(다음 세션 가벼운 체크): ①멤버십 서버 옛 채널 4개
+   삭제 여부(안전 판정 완료 — 8/26 이설 결정 기록의 삭제 가능 목록)
+   ②ClaudeCode Bot 역할의 채널 관리·웹훅 관리 권한 회수 여부(사용자 몫)
 0. **#9 이슈 게시** — 초안 완성(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md),
    사용자 승인 대기. 승인 받으면 게시(직접/gh 대행은 사용자 선택) →
    tower 세션에 URL 회신(대본 메타 반영용, 그쪽 사용자 게이트 있음)
@@ -104,6 +109,7 @@
 - 2026-08-24 [약속] 등재: 대시보드에 봇·폴더·채널 매핑 표시(bagbio1748님 블랙박스화 우려 답변에서 공개 약속 — 다음 단계 7번)
 - 2026-08-24 유튜브 관찰: 풍류왕 "윈도우로 되나용?" 댓글은 사용자가 직접 답글(초안 제공: 설치기 맥 전용+WSL2 수동 가능성+미검증 명시). 채널 전체 "윈도우" 검색으로 미답글 발견 — B0KZOfXj6z0 박일용님 건(다음 단계 0.5). 윈도우 질문 기존 답변 관례 = WSL2 안내(v40AFadpg4w) 또는 미검증 솔직 고지(0ScISw3Wuv8)
 - 2026-08-26 **수다채널 코덱스 무응답 원인 격리·핫픽스 릴리즈**: codex CLI 0.149.0 자동 업데이트로 롤아웃에서 event_msg agent_message 소멸(0.146 실물엔 존재, 0.149 세션엔 0건) → 브리지 tail이 아무것도 못 뽑아 릴레이만 무증상 소실(주입·TUI 응답 생성은 정상, agy는 tail 미사용이라 정상). 수정 = extractAgentMessages 매처를 response_item(role=assistant)로 교체 — 0.146~0.149 전 구간 동일 텍스트 기록 실물 검증(event==resp), 구포맷 두 소스 공존 시 중복 게시 배제. codex-discord v0.1.5(f09c7fc, 테스트 63 통과) + 설치기 0.1.13(fed3851, pins codex-discord v0.1.5, 테스트 42 통과) 푸시. 프로덕션 데몬 kickstart 복구, 사용자 실응답 검증(00:39). 공지 게시: 채널 1522490241859059784, 메시지 id 1541837270884024500 — 기존 설치자 업데이트 안내는 "클로드 코드에 지침 붙여넣기" 방식(수동 git checkout 3줄은 state.json 불일치로 verify 오판 유발이라 기각, 정식 경로 = plugin update→fetch 재실행이 멱등). 부속 확인: tail은 연결 시점 이후 append만 릴레이(과거분 재게시 방지 설계) / Hostinger headless 구성은 TUI tail 경로 미사용이라 무관 / 0.1.13 이월분 ①~⑤는 0.1.14 후보로 명칭 이월
+- 2026-08-26 (2차) **디스코드 서버 이설 완료**: 에이전트 채널을 멤버십 서버(1519510109217230989)→netwaif 서버(1111493736631898195)로 이전. ①봇 초대: 수다(ClaudeCode Bot)는 기존 가입, 오케·코덱스·제미나이·collab·search-youtube 5종 초대 링크(공통 7권한 permissions=309237763072)로 가입, zzukumi는 이전 제외(멤버십 서버 잔류) ②채널 매핑: 수다/TUI=codex-claude-gemini 1542142111862751314, 오케=multiagent-work 1542141967469776906, collab=1542142326384754748, search-youtube=1542141759679897690, 신설(CT가 API 생성)=codex-작업 1542153401591140403·gemini-작업 1542153403939946596·대시보드 1542153406108667984+웹훅 ③설정 치환 6곳(전부 .bak-move 백업): 전역/오케/collab/search-youtube access.json + codex .env(TUI_CHANNEL_ID·CHANNEL_IDS) + .env.gemini(CHANNEL_IDS·NAME_TRIGGER_CHANNEL_IDS) ④재기동은 브리지 데몬 2종+usage-coach만 — **클로드 세션 4종은 무재기동으로 멘션 테스트 전건 통과 = access.json은 메시지 단위 라이브 반영(재기동 불요) 신규 실증** ⑤대시보드는 8/21부터 구 웹훅 404로 조용히 실패 중이었음 → 새 웹훅 + discord-state.json message_id 리셋으로 새 카드 1542154374934040649 게시 확인 ⑥비공개 dashboard-new 채널(1542162018596036660)에 웹훅 생성해 agentlayer-29 세션에 SendMessage 전달(비공개 채널은 서버 권한으로도 비가시 — 채널별 봇 추가 필요 실측) ⑦삭제 안전 판정: 멤버십 서버 옛 채널 4개(구 수다 1529498215651741706·구 오케 1530138702838366339·구 collab 1533823223442182294·구 search-youtube 1533108133990371430) 삭제 가능, 구 codex/gemini 작업 채널·구 대시보드 웹훅은 이미 삭제돼 있었음(404). 보존 필수 = zzukumi 3채널·VPS 채널 1537467414705471640·커뮤니티 Q&A/공지. 커뮤니티 채널 허용 목록(bagbio Q&A 등)은 무접촉이라 대기 중인 답글 스레드 영향 없음
 - 2026-08-11 (오전) foldertest 사전 검증 중 격리 2건: ①harness-test 재부팅으로 tmux 서버 소멸 + **GUI 세션 종료 → 키체인 잠김 → SSH 기동 봇이 "Not logged in"**(채널 연결 이전 단계 블로커 — 사용자 GUI 로그인 요청, claude-discord 경유) ②tmux 서버를 SSH에서 재기동할 땐 `zsh -lc`로도 bun ENOENT — bun PATH(~/.bun/bin)·~/.local/bin 주입이 전부 .zshrc(interactive 전용)에 있음 → **`zsh -ic` 경유로 확정**. 8/10 "zsh -lc면 충분" 실측은 tmux 서버가 정상 환경으로 이미 떠 있던 우연. 테스트 세션 2회 모두 /exit 정상 종료(리스 없음)
 
 ## 파일 흔적
@@ -163,3 +169,4 @@
 - 상류 `~/ai-folder/dev/codex-discord/src/rollout.mjs` extractAgentMessages를 response_item(role=assistant, content output_text join) 매처로 교체 + `test/rollout.test.mjs`(픽스처·tail 테스트 신포맷화, 구포맷 event_msg 공존 시 중복 없음 검증) + `test/fixtures/rollout-sample.jsonl`(0.149 형태 response_item 줄 추가) — 커밋 f09c7fc, 태그 v0.1.5 푸시
 - `plugins/harness-installer/skills/configure-harness/generator/pins.json` codex-discord v0.1.4→v0.1.5 + `plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json` 0.1.13 범프 — 커밋 fed3851 푸시
 - Hostinger 컨테이너(/opt/data): `.profile`·`.bashrc`(LANG=C.UTF-8, PATH: .local/bin·.bun/bin) / `.local/bin/{claude,agy}`·codex(npm prefix) / `discord-bot/.discord-state/{.env,access.json}` / `codex-discord/{.env,.env.gemini}`(v0.1.4, node --env-file로 기동) / `.codex/auth.json`(맥 복사본) / 작업폴더 `codex-workspace`·`agy-workspace`
+- 8/26 서버 이설로 고친 파일(전부 원본 옆 `.bak-move` 백업): `~/.claude/channels/discord/access.json`(수다 채널 1529498215651741706→1542142111862751314, 나머지 5개 유지) / `~/ai-folder/dev/discord-multiagent/.discord-state/access.json` / `~/ai-folder/collab/.discord-state/access.json` / `~/ai-folder/youtube/search-youtube-contents/.discord-state/access.json` / `~/ai-folder/dev/codex-discord/.env`(TUI_CHANNEL_ID·CHANNEL_IDS) / `~/ai-folder/dev/codex-discord/.env.gemini`(CHANNEL_IDS·NAME_TRIGGER_CHANNEL_IDS) / `~/.config/usage-coach/discord.json`(웹훅 URL) / `~/.config/usage-coach/discord-state.json`(message_id 리셋)
