@@ -13,21 +13,19 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**8/28 세션은 zzukumi 폴더봇 연결 해제**: 사용자 /exit 선행(리스 없음) 후
-botctl stop→remove 완주, 페어링·폴더 데이터 보존 검증(8/28 결정 기록 —
-재연결은 add+start 두 줄, pair 불요). 말미에 촬영용 화면 덮기(camera-banner).
-**연속 답글 초안 1건·#9 이슈 초안 게시 승인 대기 유지**(8/24 결정 기록·
-docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
-영상 준비는 tower 이관 유지(8/12). 재개 지점 = 연속 답글 게시 여부 확인,
-#9 게시 승인 시 게시 + tower URL 회신, tower 매뉴얼 개정 원고 오면 검수.
-유튜브 미답글 2건 관찰(다음 단계 0.5). 서버 이설 뒤처리 체크 잔존(0.7).
+**9/2 세션은 디스코드 봇 4종 일괄 마감→재시작→재정박**(사용자 신규 도구 로드
+목적): tmux pane send-keys로 "세션 마감"→bot-restart.sh 4개→"이어서하자", 전부
+2.1.258·Opus 5 1M으로 재기동·MCP 연결 완료(9/2 결정 기록). 코덱스 TUI는 kickstart
+재기동. 같은 세션에서 8/24 연속 답글이 이미 게시된 것을 실물 대조로 확인해 낡은
+승인 대기 항목 삭제. **#9 이슈 초안 게시 승인 대기 유지**
+(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
+영상 준비는 tower 이관 유지(8/12). 재개 지점 = #9 게시 승인 시 게시 + tower URL
+회신, 유튜브 박일용님 답글 초안(9/2 결정 기록) 게시 승인, tower 매뉴얼 개정 원고
+오면 검수. 서버 이설 뒤처리 체크 잔존(0.7).
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
--1. **bagbio1748님 연속 답글 게시 승인 대기** — 초안 확정본은 8/24 결정 기록에
-   전문 수록. 승인 시 채널 1519510111083561021, 답글 id 1541111390444724275
-   스레드에 게시(검수 문구 생략 상태 — 필요 시 추가)
 0.5. 유튜브 미답글 2건: ①B0KZOfXj6z0 박일용님 "맥에서만 되나요? 윈도우에서는
    안되나요?"(8/24 발견) — 기존 답변 관례(v40AFadpg4w Hodoo307님 답글: WSL2 안내)
    재사용 가능 ②_hZ5mozId_0(그래프 엔지니어링 영상) @202-z7g "매뉴얼
@@ -110,6 +108,9 @@ docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
 - 2026-08-26 (2차) **디스코드 서버 이설 완료**: 에이전트 채널을 멤버십 서버(1519510109217230989)→netwaif 서버(1111493736631898195)로 이전. ①봇 초대: 수다(ClaudeCode Bot)는 기존 가입, 오케·코덱스·제미나이·collab·search-youtube 5종 초대 링크(공통 7권한 permissions=309237763072)로 가입, zzukumi는 이전 제외(멤버십 서버 잔류) ②채널 매핑: 수다/TUI=codex-claude-gemini 1542142111862751314, 오케=multiagent-work 1542141967469776906, collab=1542142326384754748, search-youtube=1542141759679897690, 신설(CT가 API 생성)=codex-작업 1542153401591140403·gemini-작업 1542153403939946596·대시보드 1542153406108667984+웹훅 ③설정 치환 6곳(전부 .bak-move 백업): 전역/오케/collab/search-youtube access.json + codex .env(TUI_CHANNEL_ID·CHANNEL_IDS) + .env.gemini(CHANNEL_IDS·NAME_TRIGGER_CHANNEL_IDS) ④재기동은 브리지 데몬 2종+usage-coach만 — **클로드 세션 4종은 무재기동으로 멘션 테스트 전건 통과 = access.json은 메시지 단위 라이브 반영(재기동 불요) 신규 실증** ⑤대시보드는 8/21부터 구 웹훅 404로 조용히 실패 중이었음 → 새 웹훅 + discord-state.json message_id 리셋으로 새 카드 1542154374934040649 게시 확인 ⑥비공개 dashboard-new 채널(1542162018596036660)에 웹훅 생성해 agentlayer-29 세션에 SendMessage 전달(비공개 채널은 서버 권한으로도 비가시 — 채널별 봇 추가 필요 실측) ⑦삭제 안전 판정: 멤버십 서버 옛 채널 4개(구 수다 1529498215651741706·구 오케 1530138702838366339·구 collab 1533823223442182294·구 search-youtube 1533108133990371430) 삭제 가능, 구 codex/gemini 작업 채널·구 대시보드 웹훅은 이미 삭제돼 있었음(404). 보존 필수 = zzukumi 3채널·VPS 채널 1537467414705471640·커뮤니티 Q&A/공지. 커뮤니티 채널 허용 목록(bagbio Q&A 등)은 무접촉이라 대기 중인 답글 스레드 영향 없음
 - 2026-08-28 **zzukumi 폴더봇 연결 해제 완료**(사용자 요청): 사용자가 세션 마감→/exit 선행(유령 리스 없음) 후 CT가 botctl `stop --name zzukumi`→`remove --name zzukumi` 실행. 결과 = tmux 세션 zzukumi-bot 종료·plist com.folder-bot.zzukumi.plist 삭제·CLAUDE.md 지침 블록 제거·bots.json 등록 해제(잔존 봇 search-youtube·collab). 보존 검증 = `~/ai-folder/youtube-members/zzukumi/.discord-state`(토큰·페어링)·SESSION.md(8/28 6회차 마감분)·HANDOFF.md·coaching/ 전부 유지, 디스코드 봇 앱·전용방 채널 무접촉. **재연결 절차 = pair 불요, `botctl add --name zzukumi --folder ~/ai-folder/youtube-members/zzukumi --session zzukumi-bot` + `start`** — 첫 기동 무로그 스킵 시 재기동 1회 수렴(정상 경로). 재연결 후 채널에서 "이어서하자"로 SESSION.md 재정박
 - 2026-08-27 **코덱스 TUI 부팅 불발 진단·수동 복구 관례 확정**: 부팅(15:08) tui-up이 TUI 기동까지는 성공했으나 codex 업데이트 프롬프트(0.149→0.150.1)에 더미 턴 Enter가 걸려 "업데이트 후 자동 종료" → codex-live 세션 소멸(`can't find session` 4회)·180초 타임아웃 실패. 15:16 재실행은 이미 갱신된 버전이라 정상 완주(사용자 추정 재기동). 대응은 사용자 결정으로 **수동 복구 한 줄** = `launchctl kickstart gui/501/com.codex-discord.tui`(동등: codex-discord에서 `npm run tui:up`, tui-up.sh 멱등이라 애매하면 그냥 실행). plist KeepAlive 추가(자동 복구)와 `check_for_update_on_startup=false`(codex config 실존 키, 프롬프트 자체 억제)는 선택지로 확인만 하고 미적용 — 빈도 낮고 복구 비용이 명령 한 줄이라는 근거. 약점 = 죽어 있으면 증상이 "디스코드 코덱스만 조용함"뿐이라 발견 지연 가능 ①harness-test 재부팅으로 tmux 서버 소멸 + **GUI 세션 종료 → 키체인 잠김 → SSH 기동 봇이 "Not logged in"**(채널 연결 이전 단계 블로커 — 사용자 GUI 로그인 요청, claude-discord 경유) ②tmux 서버를 SSH에서 재기동할 땐 `zsh -lc`로도 bun ENOENT — bun PATH(~/.bun/bin)·~/.local/bin 주입이 전부 .zshrc(interactive 전용)에 있음 → **`zsh -ic` 경유로 확정**. 8/10 "zsh -lc면 충분" 실측은 tmux 서버가 정상 환경으로 이미 떠 있던 우연. 테스트 세션 2회 모두 /exit 정상 종료(리스 없음)
+- 2026-09-02 재정박 정정: 다음 단계 -1(bagbio1748님 연속 답글 게시 승인 대기)은 **이미 해소** — 채널 1519510111083561021 실물 대조 결과 사용자가 2026-08-24 11:22 직접 게시(id 1541407450568331275, 초안 앞 두 문장만 축약 게시·번호 항목 2건 생략). bagbio1748님 8/26 "이해됐다" 감사 인사(id 1542004656673132616)로 스레드 종결. 8/28 마감 기록의 "승인 대기" 스냅샷은 실물 미대조로 낡은 상태였음 → 항목 삭제
+- 2026-09-02 **디스코드 봇 4종 일괄 마감→재시작→재정박 절차 실측**(사용자 신규 도구 로드 목적, "다른 세션은 건드리지 말 것" 범위 한정 — close-all-sessions 스킬의 ListAgents 전수 방식 대신 봇 pane 직접 지정): 대상 = orchestrator·collab-bot·search-youtube-bot·claude-discord(tmux 세션명, 각 :0.0 pane). ①`tmux send-keys -t <세션>:0.0 "세션 마감" Enter` → 4개 SESSION.md 갱신 확인 ②`bash ~/ai-folder/dev/discord-multiagent/scripts/bot-restart.sh <세션명>` ×4(14:46, 전부 0.9~1.5초에 "Successfully connected", 로그 `~/.claude/logs/bot-restart.log`) ③`send-keys "이어서하자"` → 4개 재정박 응답 확인. **교훈 3건**: (a) "세션 마감→이어서하자"는 프로세스 재시작이 아님 — 새 도구·업데이트 반영엔 bot-restart 필수(사용자 "전부 재시작 한거 맞지?"에 아니오로 정정) (b) pane 유휴 판정에 스피너 단어 매칭은 무효(Whatchamacalliting·Ionizing 등 무작위) → `done H:MM PM` 문자열 또는 SESSION.md mtime으로 판정 (c) 사용자 "봇이 전부 Fable 5.1로 시작함" 주장은 대화 기록 jsonl의 assistant.message.model 전건 `claude-opus-5`로 반박·사용자 인정 — /model 기본값 변경은 새 세션에만 적용, 기동 중 봇 무영향. 코덱스 TUI는 사용자가 업데이트로 종료해 둔 상태 → `launchctl kickstart gui/501/com.codex-discord.tui`로 codex-live 재생성·부팅 체크 통과. 제미나이 데몬 무접촉
+- 2026-09-02 유튜브 박일용님(B0KZOfXj6z0) 답글 초안 작성, 게시 승인 대기: "안녕하세요. 설치기는 현재 macOS 전용입니다(launchd·tmux 의존). 윈도우는 WSL2에서 수동으로 구성하면 가능할 수는 있는데, 제가 직접 검증한 환경이 아니라서 동작을 보장드리진 못합니다. 참고만 해주세요."
 
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
@@ -170,3 +171,4 @@ docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
 - Hostinger 컨테이너(/opt/data): `.profile`·`.bashrc`(LANG=C.UTF-8, PATH: .local/bin·.bun/bin) / `.local/bin/{claude,agy}`·codex(npm prefix) / `discord-bot/.discord-state/{.env,access.json}` / `codex-discord/{.env,.env.gemini}`(v0.1.4, node --env-file로 기동) / `.codex/auth.json`(맥 복사본) / 작업폴더 `codex-workspace`·`agy-workspace`
 - 8/28 zzukumi 봇 해제로 고친 파일: `~/.config/folder-bot/bots.json`(zzukumi 항목 삭제) / `~/ai-folder/youtube-members/zzukumi/CLAUDE.md`(마커 블록만 제거) / `~/Library/LaunchAgents/com.folder-bot.zzukumi.plist` 삭제 — `.discord-state`·SESSION.md 등 폴더 데이터는 무접촉 보존
 - 8/26 서버 이설로 고친 파일(전부 원본 옆 `.bak-move` 백업): `~/.claude/channels/discord/access.json`(수다 채널 1529498215651741706→1542142111862751314, 나머지 5개 유지) / `~/ai-folder/dev/discord-multiagent/.discord-state/access.json` / `~/ai-folder/collab/.discord-state/access.json` / `~/ai-folder/youtube/search-youtube-contents/.discord-state/access.json` / `~/ai-folder/dev/codex-discord/.env`(TUI_CHANNEL_ID·CHANNEL_IDS) / `~/ai-folder/dev/codex-discord/.env.gemini`(CHANNEL_IDS·NAME_TRIGGER_CHANNEL_IDS) / `~/.config/usage-coach/discord.json`(웹훅 URL) / `~/.config/usage-coach/discord-state.json`(message_id 리셋)
+- 9/2 세션이 고친 파일: 이 레포는 `SESSION.md`만. 레포 밖은 봇 4개 폴더의 SESSION.md(각 봇이 자기 손으로 갱신)·`~/.claude/logs/bot-restart.log`(추가만)
