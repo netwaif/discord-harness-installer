@@ -13,19 +13,22 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**9/2 세션은 디스코드 봇 4종 일괄 마감→재시작→재정박**(사용자 신규 도구 로드
-목적): tmux pane send-keys로 "세션 마감"→bot-restart.sh 4개→"이어서하자", 전부
-2.1.258·Opus 5 1M으로 재기동·MCP 연결 완료(9/2 결정 기록). 코덱스 TUI는 kickstart
-재기동. 같은 세션에서 8/24 연속 답글이 이미 게시된 것을 실물 대조로 확인해 낡은
-승인 대기 항목 삭제. **#9 이슈 초안 게시 승인 대기 유지**
-(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
-영상 준비는 tower 이관 유지(8/12). 재개 지점 = #9 게시 승인 시 게시 + tower URL
-회신, 유튜브 박일용님 답글 초안(9/2 결정 기록) 게시 승인, tower 매뉴얼 개정 원고
-오면 검수. 서버 이설 뒤처리 체크 잔존(0.7).
+**9/3 세션은 촬영 중 터진 codex-discord TUI 릴레이 세션 선택 버그 수정**(상류
+레포 커밋 7d4e6e2 푸시, 9/3 결정 기록): guardian 보조 세션 제외 + 화면 UUID
+스크레이핑 폐기, 테스트 57건·디스코드 텍스트+PNG 왕복 실측 통과, 데몬 재시작
+완료. 설치기 쪽 태그·pins 반영은 미착수(다음 단계 0.3). **#9 이슈 초안 게시 승인
+대기 유지**(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
+영상 준비는 tower 이관 유지(8/12). 재개 지점 = codex-discord 태그 v0.1.6·pins
+범프 여부 결정, #9 게시 승인, 유튜브 박일용님 답글 초안(9/2 결정 기록) 게시 승인,
+tower 매뉴얼 개정 원고 오면 검수. 서버 이설 뒤처리 체크 잔존(0.7).
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
+0.3. codex-discord 상류 7d4e6e2(9/3 릴레이 세션 선택 수정)를 설치기에 반영할지
+   결정: 태그 v0.1.6 푸시 → `plugins/harness-installer/skills/configure-harness/generator/pins.json`
+   codex-discord v0.1.5→v0.1.6 + plugin.json·marketplace.json 0.1.14 범프(8/26 fed3851
+   절차 재사용). plugin install은 최신 설치라 기존 사용자는 update만으로 반영됨
 0.5. 유튜브 미답글 2건: ①B0KZOfXj6z0 박일용님 "맥에서만 되나요? 윈도우에서는
    안되나요?"(8/24 발견) — 기존 답변 관례(v40AFadpg4w Hodoo307님 답글: WSL2 안내)
    재사용 가능 ②_hZ5mozId_0(그래프 엔지니어링 영상) @202-z7g "매뉴얼
@@ -112,6 +115,8 @@
 - 2026-09-02 **디스코드 봇 4종 일괄 마감→재시작→재정박 절차 실측**(사용자 신규 도구 로드 목적, "다른 세션은 건드리지 말 것" 범위 한정 — close-all-sessions 스킬의 ListAgents 전수 방식 대신 봇 pane 직접 지정): 대상 = orchestrator·collab-bot·search-youtube-bot·claude-discord(tmux 세션명, 각 :0.0 pane). ①`tmux send-keys -t <세션>:0.0 "세션 마감" Enter` → 4개 SESSION.md 갱신 확인 ②`bash ~/ai-folder/dev/discord-multiagent/scripts/bot-restart.sh <세션명>` ×4(14:46, 전부 0.9~1.5초에 "Successfully connected", 로그 `~/.claude/logs/bot-restart.log`) ③`send-keys "이어서하자"` → 4개 재정박 응답 확인. **교훈 3건**: (a) "세션 마감→이어서하자"는 프로세스 재시작이 아님 — 새 도구·업데이트 반영엔 bot-restart 필수(사용자 "전부 재시작 한거 맞지?"에 아니오로 정정) (b) pane 유휴 판정에 스피너 단어 매칭은 무효(Whatchamacalliting·Ionizing 등 무작위) → `done H:MM PM` 문자열 또는 SESSION.md mtime으로 판정 (c) 사용자 "봇이 전부 Fable 5.1로 시작함" 주장은 대화 기록 jsonl의 assistant.message.model 전건 `claude-opus-5`로 반박·사용자 인정 — /model 기본값 변경은 새 세션에만 적용, 기동 중 봇 무영향. 코덱스 TUI는 사용자가 업데이트로 종료해 둔 상태 → `launchctl kickstart gui/501/com.codex-discord.tui`로 codex-live 재생성·부팅 체크 통과. 제미나이 데몬 무접촉
 - 2026-09-02 유튜브 박일용님(B0KZOfXj6z0) 답글 초안 작성, 게시 승인 대기: "안녕하세요. 설치기는 현재 macOS 전용입니다(launchd·tmux 의존). 윈도우는 WSL2에서 수동으로 구성하면 가능할 수는 있는데, 제가 직접 검증한 환경이 아니라서 동작을 보장드리진 못합니다. 참고만 해주세요."
 
+- 2026-09-03 **codex-discord TUI 릴레이 세션 선택 버그 수정**(촬영 중 발생, 코덱스 Sol 진단문을 사용자가 전달 — "무조건 수용하지 말고 확인"): 증상 = 디스코드→TUI 주입은 되나 답변·`[[첨부]]`가 안 나감, guardian 승인 판정 JSON이 채널로 샘. 원인 2건 실측 — ①`findRolloutByCwd`가 cwd만 비교해 같은 cwd의 guardian_review 롤아웃(파일명 `…T11-23-05-01a06513-b562…`가 main `…b3d4…`보다 사전순 뒤)을 선택(daemon.log 4391~4393행) ②첫 수정 직후 재발: pane에 남은 Sol 진단문의 "잘못 선택된 세션: b562" UUID를 `extractSessionId`(화면 마지막 UUID)가 세션 ID로 오인 → findRolloutById 경로로 guardian에 재연결. **Sol 진단 검증 결과**: 원인 ①은 맞음, 단 "guardian_review 제외"만으론 부족 — 전 롤아웃 session_meta 전수 조사에서 guardian thread_source가 버전별로 없음(0.128)·subagent(0.130~0.141, 257건)·guardian_review(0.152, 2건)로 흔들림, source는 일관되게 객체 `{subagent:{other:"guardian"}}`, 사용자 TUI는 source="cli"·thread_source user 또는 없음(0.125~0.128). 규칙 = "source가 객체 또는 thread_source가 있는데 user 아님 → 제외". Sol 요청 2번(화면 UUID 경로 유지)은 사용자 승인("근본 해법이 맞는거면 그렇게해")으로 뒤집어 **화면 스크레이핑 경로 폐기** — 0.146+ 상태바 UUID 무표시라 이미 무용, 오인 통로만 남아 있었음. 고아 코드(capturePane·extractSessionId·UUID_PREFIX_RE·findRolloutById·auxiliaryRolloutReason)와 테스트 제거. 검증 = 실패 테스트 선행 후 57건 통과, `launchctl kickstart -k gui/501/com.codex-discord.daemon` 재시작, 디스코드 채널 1542142111862751314에서 12:50 텍스트+PNG 왕복 실측(로그: 롤아웃 제외 b562 → 선택 b3d4 → TUI tail 연결). 커밋 7d4e6e2 main 푸시. 교훈: 봇 발언은 classifyMessage에서 context 처리라 E2E 트리거는 허용 사용자만 가능 — Monitor로 daemon.log 감시 후 사용자 메시지 대기가 맞는 절차
+
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
@@ -172,3 +177,4 @@
 - 8/28 zzukumi 봇 해제로 고친 파일: `~/.config/folder-bot/bots.json`(zzukumi 항목 삭제) / `~/ai-folder/youtube-members/zzukumi/CLAUDE.md`(마커 블록만 제거) / `~/Library/LaunchAgents/com.folder-bot.zzukumi.plist` 삭제 — `.discord-state`·SESSION.md 등 폴더 데이터는 무접촉 보존
 - 8/26 서버 이설로 고친 파일(전부 원본 옆 `.bak-move` 백업): `~/.claude/channels/discord/access.json`(수다 채널 1529498215651741706→1542142111862751314, 나머지 5개 유지) / `~/ai-folder/dev/discord-multiagent/.discord-state/access.json` / `~/ai-folder/collab/.discord-state/access.json` / `~/ai-folder/youtube/search-youtube-contents/.discord-state/access.json` / `~/ai-folder/dev/codex-discord/.env`(TUI_CHANNEL_ID·CHANNEL_IDS) / `~/ai-folder/dev/codex-discord/.env.gemini`(CHANNEL_IDS·NAME_TRIGGER_CHANNEL_IDS) / `~/.config/usage-coach/discord.json`(웹훅 URL) / `~/.config/usage-coach/discord-state.json`(message_id 리셋)
 - 9/2 세션이 고친 파일: 이 레포는 `SESSION.md`만. 레포 밖은 봇 4개 폴더의 SESSION.md(각 봇이 자기 손으로 갱신)·`~/.claude/logs/bot-restart.log`(추가만)
+- 9/3 세션이 고친 파일: 이 레포는 `SESSION.md`만. 상류 `~/ai-folder/dev/codex-discord/{src/index.mjs,src/rollout.mjs,src/tmux.mjs,test/rollout.test.mjs,test/tmux.test.mjs}` 커밋 7d4e6e2 푸시 + 그 레포 SESSION.md 결정 기록 1줄 추가(미커밋)
