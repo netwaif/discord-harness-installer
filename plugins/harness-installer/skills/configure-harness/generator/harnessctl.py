@@ -455,6 +455,36 @@ def write_bot_settings(work: Path, st: dict) -> list[str]:
                        " + 무인 모드)")
     return out
 
+def write_project_trust(work: Path, st: dict) -> list[str]:
+    """무인 봇 전제 조건 2: 오케(<work>)·수다(<work>/chat) 폴더를 Claude Code에 미리 신뢰시킨다.
+
+    신뢰 전 폴더에서는 프로젝트 settings의 MCP 사전 승인(enableAllProjectMcpServers)이
+    무시돼 수다 봇이 "New MCP server found … Enter to confirm"에서 멈춘다(2026-09-08
+    WSL2 실측·맥 재현). git 저장소면 루트 신뢰가 하위에 상속되지만 일반 폴더는 chat/이
+    별개 프로젝트라 양쪽에 써 준다. 기록 위치는 Claude Code 자신이 쓰는
+    ~/.claude.json projects[절대경로].hasTrustDialogAccepted. 추가분만 state 에 남겨
+    remove 가 되돌린다."""
+    p = home() / ".claude.json"
+    try:
+        cfg = json.loads(p.read_text()) if p.exists() else {}
+    except ValueError:
+        return [f"[WARN] {p} 파싱 실패 — 폴더 신뢰 선등록 건너뜀(봇 첫 기동 때 신뢰 프롬프트에 직접 답할 것)"]
+    projects = cfg.setdefault("projects", {})
+    added = st.setdefault("trust_added", [])
+    out = []
+    for d in (work, work / "chat"):
+        key = str(d.resolve())
+        entry = projects.setdefault(key, {})
+        if entry.get("hasTrustDialogAccepted"):
+            continue
+        entry["hasTrustDialogAccepted"] = True
+        if key not in added:
+            added.append(key)
+        out.append(f"폴더 신뢰 선등록: {key} (~/.claude.json)")
+    if out:
+        p.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
+    return out
+
 def build_chat_cmd(work: Path) -> str:
     chat = work / "chat"
     path_esc = os.environ.get("PATH", "").replace("&", "&amp;")
@@ -795,6 +825,20 @@ def cmd_remove(a) -> None:
         else:
             p.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n")
             print(f"권한 사전 승인 회수: {p}")
+    if st.get("trust_added"):
+        cj = home() / ".claude.json"
+        try:
+            cfg = json.loads(cj.read_text()) if cj.exists() else {}
+        except ValueError:
+            cfg = None
+            warn(f"{cj} 파싱 실패 — 폴더 신뢰 선등록 회수 못 함")
+        if cfg is not None:
+            for key in st["trust_added"]:
+                entry = cfg.get("projects", {}).get(key)
+                if entry and entry.get("hasTrustDialogAccepted"):
+                    entry["hasTrustDialogAccepted"] = False
+                    print(f"폴더 신뢰 선등록 회수: {key}")
+            cj.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
     for line in remove_claude_block(work / "CLAUDE.md"):
         print(line)
     mcp_path = work / ".mcp.json"
@@ -926,6 +970,7 @@ def cmd_install(a) -> None:
         out += apply_overlay(work, st)
         out += apply_seeds(work, st)
         out += write_bot_settings(work, st)
+        out += write_project_trust(work, st)
     if a.phase in ("delegate", "all"):
         for line in write_bridge_envs(work):
             print(line)

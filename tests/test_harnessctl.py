@@ -310,6 +310,46 @@ def test_overlay_writes_bot_settings_with_merge(tmp_path):
     assert st["settings_added"][".claude/settings.local.json"]["created"] is False
     assert st["settings_added"]["chat/.claude/settings.local.json"]["created"] is True
 
+def test_overlay_pretrusts_work_and_chat_folders(tmp_path):
+    # 무인 봇 전제 2: 신뢰 전 폴더에선 프로젝트 settings의 MCP 사전 승인이 무시돼 수다 봇이
+    # "New MCP server found … Enter to confirm"에서 멈춘다(2026-09-08 WSL2 실측·맥 재현).
+    # git 저장소가 아닌 작업 폴더는 chat/이 별개 프로젝트라 오케·수다 양쪽을 ~/.claude.json에 선등록한다.
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    (tmp_path / ".claude.json").write_text(json.dumps(
+        {"numStartups": 3, "projects": {str(work.resolve()): {"hasTrustDialogAccepted": True,
+                                                              "allowedTools": ["Bash"]}}}))
+    r = _overlay(tmp_path, work)
+    assert r.returncode == 0, r.stdout + r.stderr
+    cfg = json.loads((tmp_path / ".claude.json").read_text())
+    assert cfg["numStartups"] == 3                                   # 다른 키 보존
+    root = cfg["projects"][str(work.resolve())]
+    assert root["hasTrustDialogAccepted"] is True and root["allowedTools"] == ["Bash"]   # 이미 신뢰 → 손대지 않음
+    assert cfg["projects"][str((work / "chat").resolve())]["hasTrustDialogAccepted"] is True
+    assert "폴더 신뢰 선등록" in r.stdout and "chat" in r.stdout
+    st = json.loads((tmp_path / ".config/discord-harness/state.json").read_text())
+    assert st["trust_added"] == [str((work / "chat").resolve())]     # 추가분만 기록
+    # 재실행 멱등: 두 번째엔 추가 없음
+    r2 = _overlay(tmp_path, work)
+    assert r2.returncode == 0 and "폴더 신뢰 선등록" not in r2.stdout
+    # remove: 설치기가 올린 신뢰만 되돌리고 사용자 것은 보존
+    _token_files(work)
+    assert _pair(tmp_path, work).returncode == 0
+    r3 = run(tmp_path, "remove", "--work-dir", str(work))
+    assert r3.returncode == 0, r3.stdout + r3.stderr
+    cfg = json.loads((tmp_path / ".claude.json").read_text())
+    assert cfg["projects"][str(work.resolve())]["hasTrustDialogAccepted"] is True
+    assert cfg["projects"][str((work / "chat").resolve())]["hasTrustDialogAccepted"] is False
+
+def test_overlay_pretrust_without_claude_json(tmp_path):
+    # ~/.claude.json이 아직 없어도(클로드 첫 실행 전) 만들어서 등록한다
+    fetched(tmp_path)
+    work = tmp_path / "work"; work.mkdir()
+    assert _overlay(tmp_path, work).returncode == 0
+    cfg = json.loads((tmp_path / ".claude.json").read_text())
+    for d in (work, work / "chat"):
+        assert cfg["projects"][str(d.resolve())]["hasTrustDialogAccepted"] is True
+
 def test_remove_reverts_bot_settings(tmp_path):
     fetched(tmp_path)
     work = tmp_path / "work"; work.mkdir()

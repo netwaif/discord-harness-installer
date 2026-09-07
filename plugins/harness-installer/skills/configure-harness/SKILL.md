@@ -262,7 +262,8 @@ python3 <이 스킬 폴더>/generator/harnessctl.py remove --work-dir <설치 �
 
 엔진이 tmux 세션·plist·위임 설치분(브리지·대시보드)·오버레이 파일(해시 일치
 분만)·CLAUDE.md 마커 블록·`.mcp.json` 추가 항목·봇 권한 사전 승인
-(`settings.local.json` 추가분)·소스 저장소를 제거한다. 일부 항목이 `[WARN]`
+(`settings.local.json` 추가분)·폴더 신뢰 선등록(`~/.claude.json`, 설치기가 올린
+것만)·소스 저장소를 제거한다. 일부 항목이 `[WARN]`
 으로 남으면 상태 파일을 보존하고 재실행 시 이어서 제거한다.
 **보존되는 것**을 그대로 안내한다: `.env` · `.discord-state` · `chat/`(사용자
 수정분) · `tasks/` · `SESSION.md` · `~/.config/usage-coach/`. 사용자가 수정한
