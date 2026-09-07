@@ -2,7 +2,7 @@
   "schema_version": 1,
   "repos": {
     "discord-multiagent": "v0.1.2",
-    "codex-discord": "v0.1.7",
+    "codex-discord": "v0.1.8",
     "usage-coach": "v0.1.4"
   },
   "plugins": {
