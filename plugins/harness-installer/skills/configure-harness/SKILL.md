@@ -37,6 +37,14 @@ FAIL 항목이 있으면 각 항목의 설치 방법(엔진 출력에 그대로 
 `npm i -g @openai/codex` / discord 플러그인 설치)을 안내하고 여기서 중단한다.
 WARN(예: `agy` 없음)은 진행 가능 — 제미나이 봇만 빠진다는 점을 알린다.
 
+**리눅스(VPS·WSL2)**: macOS와 같은 절차다. 자동 기동은 launchd 대신 systemd 사용자
+유닛(`~/.config/systemd/user/`)이며 preflight가 `systemd --user`를 확인한다 — WSL2에서
+FAIL이면 `/etc/wsl.conf`에 `[boot]` `systemd=true`를 넣고 PowerShell `wsl --shutdown`
+뒤 다시 열라고 안내한다. 사용 환경 차이를 사용자에게 먼저 말한다: **VPS**는 설치 뒤
+손 안 대도 24시간 돈다(`loginctl enable-linger`). **WSL2**는 우분투가 켜져 있는 동안만
+봇이 산다(터미널 하나 열어 두기, PC 재부팅 뒤 터미널을 열면 자동 기동) — 24시간
+운용이면 VPS를 권한다.
+
 ### 2. 설치 계획 질문 (AskUserQuestion 한 번에)
 
 - **설치 루트** (기본 `~/discord-harness` — 이 폴더가 하네스의 작업 폴더가 된다)
@@ -65,15 +73,18 @@ AskUserQuestion 도구가 없는 환경(예: codex)에서는 이 4개를 **채�
    생성된 URL로 초대. 오케스트레이터 봇은 작업 채널에만, 나머지 세 봇(클로드·
    코덱스·제미나이)은 작업+수다 채널 둘 다에 초대한다.
 4. 토큰 4개는 각각 복사 직후 설치 루트가 될 폴더에서 파일로 저장한다(채팅에
-   붙여넣지 않는다):
+   붙여넣지 않는다). macOS:
    ```
    pbpaste > .bot-token-orch    && chmod 600 .bot-token-orch
    pbpaste > .bot-token-claude  && chmod 600 .bot-token-claude
    pbpaste > .bot-token-codex   && chmod 600 .bot-token-codex
    pbpaste > .bot-token-gemini  && chmod 600 .bot-token-gemini
    ```
+   `pbpaste` 자리는 환경에 따라 바꾼다 — WSL2: `powershell.exe -c Get-Clipboard | tr -d '\r'`
+   (윈도우 클립보드를 그대로 읽음) / 리눅스 데스크톱: `xclip -o -selection clipboard` 또는
+   `wl-paste` / VPS(ssh): `cat > .bot-token-orch` 치고 붙여넣은 뒤 Enter, Ctrl-D.
 5. (2단계에서 대시보드 예로 답했으면) 대시보드용 채널에 웹훅 URL을 생성한
-   뒤 같은 폴더에 저장: `pbpaste > .webhook-url`.
+   뒤 같은 폴더에 저장: `pbpaste > .webhook-url` (위와 같은 대체 명령).
 
 ### 4. fetch
 

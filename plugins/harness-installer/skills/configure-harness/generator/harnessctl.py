@@ -25,6 +25,37 @@ CHAT_PLIST_LABEL = "com.discord-harness.chat-claude"
 CHAT_SESSION = "chat-claude"
 
 def home() -> Path: return Path(os.environ["HOME"])
+
+def host_os() -> str:
+    """'darwin' | 'linux' | 기타. HARNESS_OS(Darwin/Linux)는 테스트 override — 정본 셸 스크립트와 같은 규약."""
+    o = os.environ.get("HARNESS_OS", "").strip().lower()
+    if o:
+        return o
+    return "darwin" if sys.platform == "darwin" else ("linux" if sys.platform.startswith("linux") else sys.platform)
+
+def is_wsl() -> bool:
+    try:
+        return "microsoft" in Path("/proc/version").read_text().lower()
+    except OSError:
+        return False
+
+UNIT_NAMES = {"com.discord-multiagent.orchestrator": "discord-multiagent-orchestrator",
+              "com.discord-harness.chat-claude": "discord-harness-chat-claude"}
+
+def service_dir() -> Path:
+    return home() / ("Library/LaunchAgents" if host_os() == "darwin" else ".config/systemd/user")
+
+def service_file(label: str) -> Path:
+    """자동 기동 정의 파일 — macOS plist / 리눅스 systemd 사용자 유닛."""
+    if host_os() == "darwin":
+        return service_dir() / f"{label}.plist"
+    return service_dir() / f"{UNIT_NAMES[label]}.service"
+
+def systemctl_user(*args) -> None:
+    """systemctl --user 호출. HARNESS_FAKE_SYSTEMCTL=1이면 무접촉(테스트 시임)."""
+    if os.environ.get("HARNESS_FAKE_SYSTEMCTL"):
+        return
+    subprocess.run(["systemctl", "--user", *args], capture_output=True)
 def config_dir() -> Path: return home() / ".config/discord-harness"
 def state_path() -> Path: return config_dir() / "state.json"
 def repos_dir() -> Path: return home() / ".local/share/discord-harness/repos"
@@ -70,7 +101,7 @@ def find_tmux() -> str:
     for c in (shutil.which("tmux"), "/opt/homebrew/bin/tmux", "/usr/local/bin/tmux"):
         if c and Path(c).exists():
             return c
-    sys.exit("오류: tmux를 찾을 수 없음 — brew install tmux")
+    sys.exit("오류: tmux를 찾을 수 없음 — " + ("apt install tmux" if host_os() == "linux" else "brew install tmux"))
 
 def resolve_work_dir(a) -> Path:
     wd = getattr(a, "work_dir", None) or load_state().get("work_dir")
@@ -85,11 +116,25 @@ def cmd_preflight(a) -> None:
         if level == "FAIL":
             fails += 1
         print(f"[{level}] {msg}")
-    rep("OK" if sys.platform == "darwin" else "FAIL", "macOS")
+    osn = host_os()
+    rep("OK" if osn in ("darwin", "linux") else "FAIL", f"OS: {osn} (macOS·리눅스 지원)")
+    if osn == "linux":
+        # 자동 기동은 systemd 사용자 유닛 — WSL2는 /etc/wsl.conf [boot] systemd=true 뒤 wsl --shutdown 필요
+        try:
+            r = subprocess.run(["systemctl", "--user", "is-system-running"], capture_output=True, text=True)
+            state = (r.stdout or r.stderr).strip()
+        except FileNotFoundError:
+            state = ""
+        rep("OK" if state in ("running", "degraded") else "FAIL",
+            f"systemd --user: {state or '없음'}" + ("" if state in ("running", "degraded") else
+                " — WSL2면 /etc/wsl.conf에 [boot]\nsystemd=true 를 넣고 PowerShell에서 wsl --shutdown 뒤 다시 연다"))
+        if is_wsl():
+            print("[INFO] WSL2: 봇은 우분투가 켜져 있는 동안만 산다 — 터미널을 하나 열어 두거나, 24시간 운용은 VPS 권장")
+    pkg = "apt install" if osn == "linux" else "brew install"
     for tool, miss_level, hint in (
-            ("git", "FAIL", "xcode-select --install"),
-            ("tmux", "FAIL", "brew install tmux"),
-            ("node", "FAIL", "brew install node (브리지는 Node 22+)"),
+            ("git", "FAIL", f"{pkg} git" if osn == "linux" else "xcode-select --install"),
+            ("tmux", "FAIL", f"{pkg} tmux"),
+            ("node", "FAIL", f"{pkg} node (브리지는 Node 22+)" if osn == "darwin" else "nvm 또는 NodeSource로 Node 22+"),
             ("bun", "FAIL", "curl -fsSL https://bun.sh/install | bash (discord 플러그인 MCP 실행기)"),
             ("claude", "FAIL", "https://claude.com/claude-code 설치"),
             ("codex", "FAIL", "npm i -g @openai/codex (수다 브리지 필수)"),
@@ -418,12 +463,39 @@ def build_chat_cmd(work: Path) -> str:
              f"export DISCORD_STATE_DIR={chat}/.discord-state",
              f"exec {work}/scripts/bot-up.sh -n {CHAT_SESSION} --remote-control {CHAT_SESSION}"
              " --channels plugin:discord@claude-plugins-official"]
-    return "/bin/zsh -lc '" + "; ".join(parts) + "'"
+    shell = "/bin/bash" if host_os() == "linux" else "/bin/zsh"   # 리눅스는 zsh가 없을 수 있다
+    return shell + " -lc '" + "; ".join(parts) + "'"
 
 def chat_plist_path() -> Path:
-    return home() / f"Library/LaunchAgents/{CHAT_PLIST_LABEL}.plist"
+    """수다 클로드 자동 기동 정의 파일(이름은 호환용 — 리눅스면 systemd 유닛)."""
+    return service_file(CHAT_PLIST_LABEL)
+
+def write_chat_unit(work: Path) -> list[str]:
+    """리눅스: oneshot 유닛 + <세션>.tmux-cmd 사이드카 + up.sh (discord-multiagent install-autostart.sh와 동형)."""
+    d = service_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    tmux = find_tmux()
+    cmd_file, up = d / f"{CHAT_SESSION}.tmux-cmd", d / f"{CHAT_SESSION}.up.sh"
+    unit = service_file(CHAT_PLIST_LABEL)
+    cmd_file.write_text(build_chat_cmd(work) + "\n")
+    up.write_text(f'#!/bin/bash\nexec "{tmux}" new-session -d -s {CHAT_SESSION} "$(cat "{cmd_file}")"\n')
+    up.chmod(0o755)
+    body = ("[Unit]\nDescription=discord-harness 수다 클로드 (tmux 세션 " + CHAT_SESSION + ")\n"
+            "After=network-online.target discord-multiagent-orchestrator.service\n\n"
+            "[Service]\nType=oneshot\nRemainAfterExit=yes\nKillMode=process\n"
+            f"ExecStart=/bin/bash {up}\nExecStop={tmux} kill-session -t {CHAT_SESSION}\n\n"
+            "[Install]\nWantedBy=default.target\n")
+    changed = not (unit.exists() and unit.read_text() == body)
+    unit.write_text(body)
+    systemctl_user("daemon-reload")
+    systemctl_user("enable", "--now", unit.name)
+    if not os.environ.get("HARNESS_FAKE_SYSTEMCTL"):
+        subprocess.run(["loginctl", "enable-linger", os.environ.get("USER", "")], capture_output=True)
+    return [f"유닛 생성: {unit} (systemd --user, 수다 클로드 자동 기동)"] if changed else []
 
 def write_chat_plist(work: Path) -> list[str]:
+    if host_os() == "linux":
+        return write_chat_unit(work)
     p = chat_plist_path()
     p.parent.mkdir(parents=True, exist_ok=True)
     data = {"Label": CHAT_PLIST_LABEL,
@@ -448,7 +520,8 @@ def delegate(argv: list, cwd: Path, dry: bool, log_hint: str) -> None:
 
 def mcp_log_dir(workdir: Path) -> Path:
     mangled = re.sub(r"[/.]", "-", str(workdir))
-    return home() / "Library/Caches/claude-cli-nodejs" / mangled / "mcp-logs-plugin-discord-discord"
+    cache = "Library/Caches/claude-cli-nodejs" if host_os() == "darwin" else ".cache/claude-cli-nodejs"
+    return home() / cache / mangled / "mcp-logs-plugin-discord-discord"
 
 def judge_mcp(workdir: Path, since: float = None):
     """MCP 연결 판정 — since(설치 시각) 이전 로그는 무시하고 최신 파일만 본다.
@@ -638,9 +711,9 @@ def cmd_doctor(a) -> None:
         work = Path(wd).expanduser()
         rep("OK" if (work / ".env").exists() else "WARN",
             f"페어링(.env): {'있음' if (work / '.env').exists() else '없음 — pair 필요'}")
-        for label, p in ((ORCH_PLIST_LABEL, home() / f"Library/LaunchAgents/{ORCH_PLIST_LABEL}.plist"),
+        for label, p in ((ORCH_PLIST_LABEL, service_file(ORCH_PLIST_LABEL)),
                          (CHAT_PLIST_LABEL, chat_plist_path())):
-            rep("OK" if p.exists() else "WARN", f"plist {label}: {'있음' if p.exists() else '없음'}")
+            rep("OK" if p.exists() else "WARN", f"자동 기동 {label}: {'있음' if p.exists() else '없음'}")
         for sess in ("orchestrator", CHAT_SESSION):
             alive = subprocess.run([find_tmux(), "has-session", "-t", sess],
                                    capture_output=True).returncode == 0
@@ -658,10 +731,20 @@ def cmd_remove(a) -> None:
     tmux = find_tmux()
     for sess in ("orchestrator", CHAT_SESSION):
         subprocess.run([tmux, "kill-session", "-t", sess], capture_output=True)
-    for p in (home() / f"Library/LaunchAgents/{ORCH_PLIST_LABEL}.plist", chat_plist_path()):
+    if host_os() == "linux":
+        for label in (ORCH_PLIST_LABEL, CHAT_PLIST_LABEL):
+            systemctl_user("disable", "--now", service_file(label).name)
+    for p in (service_file(ORCH_PLIST_LABEL), chat_plist_path()):
         if p.exists():
             p.unlink()
-            print(f"plist 제거: {p}")
+            print(f"자동 기동 정의 제거: {p}")
+    if host_os() == "linux":
+        for side in ("orchestrator", CHAT_SESSION):
+            for suf in (".tmux-cmd", ".up.sh"):
+                q = service_dir() / f"{side}{suf}"
+                if q.exists():
+                    q.unlink()
+        systemctl_user("daemon-reload")
     for script, cwd in ((bridge_repo() / "scripts/uninstall.sh", bridge_repo()),
                         (coach_repo() / "scripts/uninstall.sh", coach_repo())):
         if script.exists():
@@ -811,9 +894,9 @@ def cmd_verify(a) -> None:
         else:
             # 세션 존재 ≠ 봇 가동 — bot-up 락 대기 중이면 pane 이 비어 있다 (3차 실측)
             rep("WARN", f"tmux 세션 {sess}: 세션은 있으나 claude 프로세스 없음(기동 대기/실패)")
-    for label, p in ((ORCH_PLIST_LABEL, home() / f"Library/LaunchAgents/{ORCH_PLIST_LABEL}.plist"),
+    for label, p in ((ORCH_PLIST_LABEL, service_file(ORCH_PLIST_LABEL)),
                      (CHAT_PLIST_LABEL, chat_plist_path())):
-        rep("OK" if p.exists() else "WARN", f"plist {label}: {'있음' if p.exists() else '없음'}")
+        rep("OK" if p.exists() else "WARN", f"자동 기동 {label}: {'있음' if p.exists() else '없음'}")
     if not a.skip_webhook:
         cfg = home() / ".config/usage-coach/discord.json"
         if not cfg.exists():
@@ -853,9 +936,10 @@ def cmd_install(a) -> None:
                      a.dry_run, "~/.config/usage-coach/")
         if a.autostart:
             delegate(["bash", work / "scripts/install-autostart.sh"], work,
-                     a.dry_run, "launchctl print gui/$(id -u)/" + ORCH_PLIST_LABEL)
+                     a.dry_run, ("systemctl --user status " + UNIT_NAMES[ORCH_PLIST_LABEL]) if host_os() == "linux"
+                     else "launchctl print gui/$(id -u)/" + ORCH_PLIST_LABEL)
             if a.dry_run:
-                print(f"위임(dry-run): plist 생성 예정 — {chat_plist_path()}")
+                print(f"위임(dry-run): 자동 기동 정의 생성 예정 — {chat_plist_path()}")
             else:
                 for line in write_chat_plist(work):
                     print(line)

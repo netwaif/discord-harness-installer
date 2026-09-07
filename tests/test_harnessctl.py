@@ -655,3 +655,30 @@ def test_remove_preserves_user_modified_overlay(tmp_path):
 
 def test_engine_source_never_mentions_bootout():
     assert "bootout" not in HARNESSCTL.read_text()
+
+# ── 리눅스 분기 (HARNESS_OS=Linux, systemctl 무접촉 시임) ──
+def test_preflight_linux_reports_os_and_systemd(tmp_path):
+    (tmp_path / ".claude/plugins/cache/claude-plugins-official/discord").mkdir(parents=True)
+    r = run(tmp_path, "preflight", env_extra={"HARNESS_OS": "Linux"})
+    assert "[OK] OS: linux" in r.stdout
+    # 맥 개발기엔 systemctl이 없다 → 리눅스 분기는 systemd 부재를 FAIL로 잡고 WSL2 안내를 붙인다
+    assert "systemd --user" in r.stdout and "wsl.conf" in r.stdout
+    assert "apt install tmux" in r.stdout or "[OK] tmux" in r.stdout
+
+def test_delegate_real_run_writes_chat_unit_linux(tmp_path):
+    base, work = _installed(tmp_path)
+    r = run(tmp_path, "install", "--work-dir", str(work), "--phase", "delegate", "--autostart",
+            env_extra={"HARNESS_OS": "Linux", "HARNESS_FAKE_SYSTEMCTL": "1"})
+    assert r.returncode == 0, r.stdout + r.stderr
+    d = tmp_path / ".config/systemd/user"
+    unit = (d / "discord-harness-chat-claude.service").read_text()
+    assert "Type=oneshot" in unit and "KillMode=process" in unit and "chat-claude.up.sh" in unit
+    cmd = (d / "chat-claude.tmux-cmd").read_text()
+    assert cmd.startswith("/bin/bash -lc") and f"cd {work}/chat" in cmd and "scripts/bot-up.sh" in cmd
+    assert (d / "chat-claude.up.sh").stat().st_mode & 0o111
+    assert not (tmp_path / "Library/LaunchAgents/com.discord-harness.chat-claude.plist").exists()
+    # remove가 유닛·사이드카를 지운다
+    r = run(tmp_path, "remove", "--work-dir", str(work),
+            env_extra={"HARNESS_OS": "Linux", "HARNESS_FAKE_SYSTEMCTL": "1"})
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert not (d / "discord-harness-chat-claude.service").exists() and not (d / "chat-claude.tmux-cmd").exists()
