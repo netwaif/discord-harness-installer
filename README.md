@@ -51,6 +51,11 @@ folder-bot) 최소 호환 버전을 고정한다. 기본 `fetch`는 이 핀으�
 
 ## 요구 사항
 
-**macOS 전용.** launchctl(plist)·tmux·Homebrew 생태계에 의존하므로 리눅스·
-윈도우는 지원하지 않는다. `preflight` 단계가 git·tmux·node·claude·codex 등
-필수 도구를 점검하고 없는 항목의 설치 방법을 안내한다.
+**macOS · 리눅스(VPS) · 윈도우(WSL2 우분투)**에서 같은 절차로 설치된다.
+자동 기동은 macOS가 launchd, 리눅스·WSL2가 systemd 사용자 유닛이며 설치기가
+알아서 고른다. `preflight` 단계가 git·tmux·node·claude·codex 등 필수 도구를
+점검하고 없는 항목의 설치 방법을 안내한다.
+
+WSL2는 우분투 터미널을 열어 둔 동안만 봇이 산다(PC 재부팅 뒤 터미널을 열면
+자동 기동). 24시간 운용은 VPS를 권한다 — VPS는 설치 뒤 손대지 않아도 돈다.
+실기 검증 환경: 윈도우 10(스토어판 WSL, Ubuntu 24.04)·Ubuntu 24.04 VM·macOS.
