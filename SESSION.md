@@ -24,6 +24,8 @@ agentlayer `docs/linux-wsl2-verification.md`에 기록. 9/8 공지 채널에 "�
 설치기 pins·매뉴얼 반영 필요 여부는 다음 세션에 확인).
 **9/9 밤(agentlayer 세션 지시): folder-bot 0.1.6 리눅스 분기 완료** — 태그 v0.1.6 푸시, 설치기
 pins folder-bot 0.1.6 + 0.1.19(c6c3195), ubuntu-agent VM 실측 2회(뒷정리·linger 원복 완료).
+9/10 마감: 재개 지점 = **0.2 folder-bot 0.1.7 systemd 없음 폴백**(컨테이너 이식, 사용자 "다음에 작업")
+→ 0.25 WSL2 확인 → 0.3 매뉴얼 2장 정정. 헤르메스 컨테이너 폴더 봇은 0.1.7 전까지 `--no-autostart` 수동 3줄만 가능.
 **잔존**: 매뉴얼 v3.0 2장 "리눅스·윈도우(WSL)는 아직 검증 전" 문구가 공지("매뉴얼
 v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 유지.
 
@@ -216,3 +218,4 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 9/7~9/8 세션이 고친 파일(재구성): 이 레포 `docs/superpowers/{specs,plans}/2026-09-07-linux-service-layer*.md`·`plugins/harness-installer/skills/configure-harness/generator/{harnessctl.py,pins.json}`·`SKILL.md`·`tests/test_harnessctl.py`·`README.md`·plugin.json/marketplace.json(0.1.18). 상류 `~/VSCodeWorkspace/usage-coach`(v0.1.4)·`~/ai-folder/dev/codex-discord`(v0.1.8)·`~/ai-folder/dev/discord-multiagent`(v0.1.3). 검증 기록 `~/ai-folder/dev/agentlayer/docs/linux-wsl2-verification.md`(6~8차)
 - 9/9 세션이 고친 파일: 이 레포 `SESSION.md`만(재정박 정정·마감). 레포 밖은 collab 봇 tmux 세션 재생성(파일 무접촉)
 - 9/9 밤 세션이 고친 파일: 이 레포 `plugins/harness-installer/skills/configure-harness/generator/pins.json`·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.19, c6c3195)·`SESSION.md`. 상류 `~/VSCodeWorkspace/folder-bot`: `plugins/folder-bot/skills/configure-bot/{generator/botctl.py,assets/bot-up.sh,assets/bot-restart.sh,SKILL.md}`·`plugins/folder-bot/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.6)·`README.md`·`tests/{conftest.py,test_botctl.py}` — 커밋 6448380, 태그 v0.1.6
+- 9/10 세션이 고친 파일: 이 레포 `SESSION.md`만(문답·다음 단계 등재·마감)
