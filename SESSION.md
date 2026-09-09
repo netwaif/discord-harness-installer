@@ -22,6 +22,8 @@ agentlayer `docs/linux-wsl2-verification.md`에 기록. 9/8 공지 채널에 "�
 9/9 세션: SESSION.md 재정박 정정 + collab 봇 kickstart 재기동(472ms 연결). 사용자
 고지: 다른 폴더에서 모든 하네스를 리눅스·윈도우 지원되게 수정함(상세 미수령 —
 설치기 pins·매뉴얼 반영 필요 여부는 다음 세션에 확인).
+**9/9 밤(agentlayer 세션 지시): folder-bot 0.1.6 리눅스 분기 완료** — 태그 v0.1.6 푸시, 설치기
+pins folder-bot 0.1.6 + 0.1.19(c6c3195), ubuntu-agent VM 실측 2회(뒷정리·linger 원복 완료).
 **잔존**: 매뉴얼 v3.0 2장 "리눅스·윈도우(WSL)는 아직 검증 전" 문구가 공지("매뉴얼
 v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 유지.
 
@@ -133,6 +135,10 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 
 - 2026-09-09 (마감 후 추가 문답) **헤르메스 컨테이너에서 폴더 봇 사용 가능성 평가**(사용자 목적 = 대시보드·하네스 아님, 폴더 봇): ①설치기(harnessctl)는 systemd 전제라 컨테이너(PID1=entrypoint.sh, systemctl 부재) 불가 ②folder-bot 0.1.5(8/6, 리눅스 업그레이드 미포함·9/8 확인 목록에도 없음)는 macOS 전용 — 막힘 4곳: bot-up.sh `stat -f`(dm v0.1.3의 `stat -c` 수정 이식) / MCP 로그 `~/Library/Caches`→`~/.cache` 분기(bot-up·bot-restart·botctl doctor) / 자동 기동 plist뿐(컨테이너는 `--no-autostart`+호스트 claude-bridge-watch.sh 세션 추가) / codex 엔진 start·remove의 launchctl 직접 호출(claude 봇만이면 무관) ③컨테이너 실측 완료: zsh·bash·python3.13·tmux·claude 2.1.259·codex·agy·discord 플러그인 0.0.4 존재, hermes 사용자 tmux 4세션(claude-bridge·codex-bridge·gemini-bridge·hostinger-bot) 생존, `~/.local/bin/bot-up` 없음(botctl add가 설치). 작업 위치 = `~/VSCodeWorkspace/folder-bot`(0.1.6 후보), 실측은 hermes 사용자로. 사용자 "작업 지시 올거야" — 대기
 
+- 2026-09-09 (밤) **folder-bot 0.1.6 리눅스(systemd) 분기 완료** — agentlayer 세션 작업 지시(사용자 승인). 정본 `~/VSCodeWorkspace/folder-bot` 커밋 6448380, 태그 v0.1.6 푸시. 설계 = 하네스 6차 패턴 그대로: 리눅스 유닛 `~/.config/systemd/user/com.folder-bot.<이름>.service`(라벨 동일 — agentlayer wiring 매칭, 첫 줄 주석 `# folder-bot: name= session= folder=`, oneshot+RemainAfterExit+KillMode=process, ExecStart=/bin/bash <세션>.up.sh, ExecStop=tmux kill-session -t <세션>) + 사이드카 `<세션>.tmux-cmd`·`<세션>.up.sh`; codex 엔진 `com.codex-discord.<이름>.service`(simple, Restart=always)·`-tui.service`(oneshot, ExecStart=bash tui-up.sh — 사이드카 없음, 세션명은 ExecStop·주석). start=systemctl start(유닛 있을 때), stop=systemctl stop+kill-session, remove=disable→유닛·사이드카 삭제→daemon-reload. bot-up.sh stat -c/~/.cache, bot-restart.sh 사이드카+BOT_RESTART_DRY_RUN, SKILL.md OS 게이트(Darwin 또는 systemd --user running, WSL2 wsl.conf 안내)·토큰 저장 리눅스 대체 명령. tests/conftest.py 안전장치(PATH 앞 가짜 launchctl·systemctl·loginctl → exit 99+표식, HARNESS_FAKE_SYSTEMCTL=1) + 리눅스 케이스 9건, 33 통과
+- 2026-09-09 (밤) ubuntu-agent VM 실측(Ubuntu 24.04, claude 2.1.263): add→유닛·사이드카·enabled·active·Linger=yes·tmux vmtest-bot / pair(가짜 토큰) / bot-restart 사이드카 dry-run / stop→inactive / start→`systemctl --user start` 경유 active / remove→유닛·wants·사이드카 잔존 0. 1차는 폴더 미신뢰 다이얼로그에 걸려 MCP 로그 미생성(doctor WARN 정확) → `~/.claude.json` 신뢰 선등록 후 2차: MCP 로그 `~/.cache/claude-cli-nodejs/...` 생성·"Successfully connected 420ms"(가짜 토큰이어도 MCP stdio 기동 판정 — 게이트웨이 로그인과 별개, 맥과 같은 의미)·doctor OK. 뒷정리: fb-work·fb-test·bots.json·bot-up/bot-restart·캐시 삭제, .claude.json 원복, `loginctl disable-linger`(원래 no). 관찰: botctl add는 폴더 신뢰를 선등록하지 않음(하네스 0.1.18은 함) — SKILL.md 사용자 단계로 유지, 필요 시 차기
+- 2026-09-09 (밤) 설치기 pins folder-bot 0.1.1→0.1.6 + 0.1.19(c6c3195 푸시). folder-bot marketplace.json이 0.1.1에 멈춰 있던 것이 8/11 "낡은 기록"의 실체 — 0.1.6으로 정합. 매뉴얼 v3.0 2장 문구 정정(0.3)은 여전히 잔존
+
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
@@ -197,3 +203,4 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 9/5 세션이 고친 파일: 이 레포는 `plugins/harness-installer/skills/configure-harness/generator/pins.json`(codex-discord v0.1.6)·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.14) 커밋 73371b7 푸시 + `SESSION.md`. 상류 `~/ai-folder/dev/codex-discord/scripts/tui-up.sh` 커밋 88c0b04 푸시, 태그 v0.1.6 푸시
 - 9/7~9/8 세션이 고친 파일(재구성): 이 레포 `docs/superpowers/{specs,plans}/2026-09-07-linux-service-layer*.md`·`plugins/harness-installer/skills/configure-harness/generator/{harnessctl.py,pins.json}`·`SKILL.md`·`tests/test_harnessctl.py`·`README.md`·plugin.json/marketplace.json(0.1.18). 상류 `~/VSCodeWorkspace/usage-coach`(v0.1.4)·`~/ai-folder/dev/codex-discord`(v0.1.8)·`~/ai-folder/dev/discord-multiagent`(v0.1.3). 검증 기록 `~/ai-folder/dev/agentlayer/docs/linux-wsl2-verification.md`(6~8차)
 - 9/9 세션이 고친 파일: 이 레포 `SESSION.md`만(재정박 정정·마감). 레포 밖은 collab 봇 tmux 세션 재생성(파일 무접촉)
+- 9/9 밤 세션이 고친 파일: 이 레포 `plugins/harness-installer/skills/configure-harness/generator/pins.json`·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.19, c6c3195)·`SESSION.md`. 상류 `~/VSCodeWorkspace/folder-bot`: `plugins/folder-bot/skills/configure-bot/{generator/botctl.py,assets/bot-up.sh,assets/bot-restart.sh,SKILL.md}`·`plugins/folder-bot/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.6)·`README.md`·`tests/{conftest.py,test_botctl.py}` — 커밋 6448380, 태그 v0.1.6
