@@ -219,3 +219,5 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 9/9 세션이 고친 파일: 이 레포 `SESSION.md`만(재정박 정정·마감). 레포 밖은 collab 봇 tmux 세션 재생성(파일 무접촉)
 - 9/9 밤 세션이 고친 파일: 이 레포 `plugins/harness-installer/skills/configure-harness/generator/pins.json`·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.19, c6c3195)·`SESSION.md`. 상류 `~/VSCodeWorkspace/folder-bot`: `plugins/folder-bot/skills/configure-bot/{generator/botctl.py,assets/bot-up.sh,assets/bot-restart.sh,SKILL.md}`·`plugins/folder-bot/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.6)·`README.md`·`tests/{conftest.py,test_botctl.py}` — 커밋 6448380, 태그 v0.1.6
 - 9/10 세션이 고친 파일: 이 레포 `SESSION.md`만(문답·다음 단계 등재·마감)
+
+- 2026-09-10 folder-bot 0.1.7은 WSL2 실측 발견분(add enable만·빈 CLAUDE.md 삭제·SKILL WSL 버스 안내)으로 먼저 소진(b5149e9, 설치기 v0.1.20 pins 0.1.7). "systemd 없음 폴백"은 **0.1.8**로 번호 변경 — 다음 단계 0.2의 0.1.7→0.1.8로 읽을 것. 0.25(WSL2 폴더 봇 테스트)는 agentlayer 세션에서 완료(NAS RESULT-wsl2-folderbot-20260910.md, 통과).
