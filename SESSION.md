@@ -131,6 +131,8 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 2026-09-09 collab 봇 재기동: 사용자가 /exit로 직접 종료 → `launchctl kickstart gui/$(id -u)/com.folder-bot.collab` 한 줄로 복구(8/28 관례). tmux collab-bot 21:14:51 생성, MCP 로그 `~/Library/Caches/claude-cli-nodejs/-Users-soonho-ai-folder-collab/mcp-logs-plugin-discord-discord/2026-09-09T12-14-52-226Z.jsonl` "Successfully connected (transport: stdio) in 472ms", 첫 기동 무로그 스킵 미발생, 신뢰 프롬프트 없음
 - 2026-09-09 사용자 고지: "다른 폴더에 이번에 모든 하네스를 리눅스, 윈도우 지원되게 수정했어" — 어느 폴더·어느 레포인지 미특정. 설치기 pins(dm v0.1.3·cd v0.1.8·uc v0.1.4)와 상류 태그가 이미 리눅스 분기를 담고 있으므로, 추가 수정분이 새 태그·핀 범프를 요구하는지 다음 세션에 확인
 
+- 2026-09-09 (마감 후 추가 문답) **헤르메스 컨테이너에서 폴더 봇 사용 가능성 평가**(사용자 목적 = 대시보드·하네스 아님, 폴더 봇): ①설치기(harnessctl)는 systemd 전제라 컨테이너(PID1=entrypoint.sh, systemctl 부재) 불가 ②folder-bot 0.1.5(8/6, 리눅스 업그레이드 미포함·9/8 확인 목록에도 없음)는 macOS 전용 — 막힘 4곳: bot-up.sh `stat -f`(dm v0.1.3의 `stat -c` 수정 이식) / MCP 로그 `~/Library/Caches`→`~/.cache` 분기(bot-up·bot-restart·botctl doctor) / 자동 기동 plist뿐(컨테이너는 `--no-autostart`+호스트 claude-bridge-watch.sh 세션 추가) / codex 엔진 start·remove의 launchctl 직접 호출(claude 봇만이면 무관) ③컨테이너 실측 완료: zsh·bash·python3.13·tmux·claude 2.1.259·codex·agy·discord 플러그인 0.0.4 존재, hermes 사용자 tmux 4세션(claude-bridge·codex-bridge·gemini-bridge·hostinger-bot) 생존, `~/.local/bin/bot-up` 없음(botctl add가 설치). 작업 위치 = `~/VSCodeWorkspace/folder-bot`(0.1.6 후보), 실측은 hermes 사용자로. 사용자 "작업 지시 올거야" — 대기
+
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
