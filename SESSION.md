@@ -13,21 +13,28 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**9/5 세션은 0.3 완료 — codex-discord v0.1.6 태그 + 설치기 0.1.14 배포**(9/5
-결정 기록): 상류 tui-up.sh ulimit 미커밋분 커밋(88c0b04)·태그 v0.1.6 푸시, 설치기
-pins codex-discord v0.1.6 + plugin.json·marketplace.json 0.1.14(커밋 73371b7 푸시,
-테스트 42 통과). 코덱스 TUI 사용자 종료 후 kickstart 수동 복구 실측(09:27, 5초).
-**#9 이슈 초안 게시 승인 대기 유지**(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md).
-영상 준비는 tower 이관 유지(8/12). 재개 지점 = 0.1.14 업데이트 공지 여부 결정,
-#9 게시 승인, 유튜브 박일용님 답글 초안(9/2 결정 기록) 게시 승인, tower 매뉴얼
-개정 원고 오면 검수. 서버 이설 뒤처리 체크 잔존(0.7).
+**9/7~9/8 세션(마감 기록 없이 종료, 9/9 git·공지 대조로 재구성) — 리눅스·WSL2 지원
+완료·공지 완료.** 설치기 0.1.15(리눅스 분기)→0.1.16(cd v0.1.8 신뢰 프롬프트)→0.1.17(dm
+v0.1.3 stat/캐시)→0.1.18(오케·수다 폴더 신뢰 선등록 `~/.claude.json`), 상류 태그
+dm v0.1.3·cd v0.1.8·uc v0.1.4, README 요구 사항 갱신(e38a2f6). WSL2 실기 8차까지
+agentlayer `docs/linux-wsl2-verification.md`에 기록. 9/8 공지 채널에 "하네스 윈도우
+지원" 게시(id 1546694530210857050) — 0.3 공지 항목 해소. 테스트 46 통과(9/9 확인).
+9/9 세션: SESSION.md 재정박 정정 + collab 봇 kickstart 재기동(472ms 연결). 사용자
+고지: 다른 폴더에서 모든 하네스를 리눅스·윈도우 지원되게 수정함(상세 미수령 —
+설치기 pins·매뉴얼 반영 필요 여부는 다음 세션에 확인).
+**잔존**: 매뉴얼 v3.0 2장 "리눅스·윈도우(WSL)는 아직 검증 전" 문구가 공지("매뉴얼
+v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 유지.
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-0.3. 0.1.14 업데이트 공지 여부 결정(사용자 판단): 8/26 관례대로 공지 채널
-   1522490241859059784에 "클로드 코드에 지침 붙여넣기" 방식 안내(plugin update→fetch
-   재실행). 안 올리면 기존 설치자는 v0.1.5(guardian 오선택 버그) 잔존
+0.3. **매뉴얼 v3.0 2장 정정**(~/VSCodeWorkspace/discord-multiagent-manual/index.html,
+   git 아님·8/22 빌드): "리눅스·윈도우(WSL)는 아직 검증 전이라 지원을 확정하지
+   않습니다" → 지원 확정 + WSL2 "터미널 열어 두기"·VPS 권장 + 토큰 저장 대체
+   명령(SKILL.md 리눅스 절 참조). 8/12 규율상 원고는 tower 소관 — 사용자가 이
+   세션에 맡기면 직접 수정 후 /deploy-manual discord-multiagent
+0.4. 9/8 공지(id 1546694530210857050) 오타 1건: "README 설치 절대로 설치기
+   플러그인을" → "설치 절 대로"(edit_message 가능, 사용자 판단)
 0.5. 유튜브 미답글 2건: ①B0KZOfXj6z0 박일용님 "맥에서만 되나요? 윈도우에서는
    안되나요?"(8/24 발견) — 기존 답변 관례(v40AFadpg4w Hodoo307님 답글: WSL2 안내)
    재사용 가능 ②_hZ5mozId_0(그래프 엔지니어링 영상) @202-z7g "매뉴얼
@@ -42,7 +49,7 @@ pins codex-discord v0.1.6 + plugin.json·marketplace.json 0.1.14(커밋 73371b7 
 1. tower 세션 매뉴얼 개정 원고 검수(오면) — v2.2 원본
    (~/VSCodeWorkspace/discord-multiagent-manual/)·SESSION.md 결정 기록 대조,
    "16장→스킬 1개" 서사에서 포탈 수동 단계 잔존 경계선 확인
-2. 설치기 차기 이월(0.1.14 후보 — 0.1.13은 8/26 핫픽스로 소진): ①preflight/verify 로컬 동명 세션 검사
+2. 설치기 차기 이월(0.1.19 후보 — 0.1.14~0.1.18은 9/5·9/7~8 핀·리눅스로 소진): ①preflight/verify 로컬 동명 세션 검사
    ②verify 무로그 스킵 진단 메시지에 이름 충돌 안내(다른 기기 포함)
    ③pins.json plugins.folder-bot 0.1.1→0.1.5 정정(기록용 — plugin install은
    버전 미지정 최신 설치라 기능 무관, 8/11 확인) ④remove 재실행 "이미 제거됨"
@@ -117,6 +124,13 @@ pins codex-discord v0.1.6 + plugin.json·marketplace.json 0.1.14(커밋 73371b7 
 - 2026-09-03 **codex-discord TUI 릴레이 세션 선택 버그 수정**(촬영 중 발생, 코덱스 Sol 진단문을 사용자가 전달 — "무조건 수용하지 말고 확인"): 증상 = 디스코드→TUI 주입은 되나 답변·`[[첨부]]`가 안 나감, guardian 승인 판정 JSON이 채널로 샘. 원인 2건 실측 — ①`findRolloutByCwd`가 cwd만 비교해 같은 cwd의 guardian_review 롤아웃(파일명 `…T11-23-05-01a06513-b562…`가 main `…b3d4…`보다 사전순 뒤)을 선택(daemon.log 4391~4393행) ②첫 수정 직후 재발: pane에 남은 Sol 진단문의 "잘못 선택된 세션: b562" UUID를 `extractSessionId`(화면 마지막 UUID)가 세션 ID로 오인 → findRolloutById 경로로 guardian에 재연결. **Sol 진단 검증 결과**: 원인 ①은 맞음, 단 "guardian_review 제외"만으론 부족 — 전 롤아웃 session_meta 전수 조사에서 guardian thread_source가 버전별로 없음(0.128)·subagent(0.130~0.141, 257건)·guardian_review(0.152, 2건)로 흔들림, source는 일관되게 객체 `{subagent:{other:"guardian"}}`, 사용자 TUI는 source="cli"·thread_source user 또는 없음(0.125~0.128). 규칙 = "source가 객체 또는 thread_source가 있는데 user 아님 → 제외". Sol 요청 2번(화면 UUID 경로 유지)은 사용자 승인("근본 해법이 맞는거면 그렇게해")으로 뒤집어 **화면 스크레이핑 경로 폐기** — 0.146+ 상태바 UUID 무표시라 이미 무용, 오인 통로만 남아 있었음. 고아 코드(capturePane·extractSessionId·UUID_PREFIX_RE·findRolloutById·auxiliaryRolloutReason)와 테스트 제거. 검증 = 실패 테스트 선행 후 57건 통과, `launchctl kickstart -k gui/501/com.codex-discord.daemon` 재시작, 디스코드 채널 1542142111862751314에서 12:50 텍스트+PNG 왕복 실측(로그: 롤아웃 제외 b562 → 선택 b3d4 → TUI tail 연결). 커밋 7d4e6e2 main 푸시. 교훈: 봇 발언은 classifyMessage에서 context 처리라 E2E 트리거는 허용 사용자만 가능 — Monitor로 daemon.log 감시 후 사용자 메시지 대기가 맞는 절차
 - 2026-09-05 **0.3 완료 — codex-discord v0.1.6·설치기 0.1.14 배포**: 재정박 중 상류 `scripts/tui-up.sh`에 기록 없는 미커밋 변경(09:18, tmux new-session 명령 안에 `ulimit -Sn 8192 &&` — 기존 tmux 서버 maxfiles=256 상속 회피, 바깥 ulimit은 기존 서버 자식에 미적용) 발견 → 사용자 지시로 커밋 88c0b04 푸시(출처는 미확인, 로그에 EMFILE 흔적 없음). 태그 v0.1.6은 88c0b04에(7d4e6e2 릴레이 수정 + ulimit 포함). 설치기 pins v0.1.5→v0.1.6 + 0.1.14 범프 커밋 73371b7 푸시, 테스트 42 통과 — 8/26 fed3851과 동일 3파일 절차. **pins는 실제 체크아웃 기준**(`cmd_fetch`가 pins.json 태그를 git checkout) — "update만으로 반영"은 plugins 쪽만 해당, repos는 핀 범프 필수. 부속: 사용자가 부팅 후 코덱스 TUI를 종료 → `launchctl kickstart gui/501/com.codex-discord.tui`로 복구(09:27:13→18 준비 완료, 더미 턴 재전송 없이 5초, 새 롤아웃 01a06ef6) — ulimit 변경분 첫 실기동 정상. 데몬은 무접촉(다음 메시지 때 cwd 기준 새 세션에 재연결)
 
+- 2026-09-07~08 **리눅스 서비스 층 완료**(세션 마감 기록 없이 종료 — 9/9 git·agentlayer 검증 문서·공지로 재구성): 스펙 `docs/superpowers/specs/2026-09-07-linux-service-layer-design.md`(launchd→systemd 사용자 유닛 6종 대응표, tmux 유닛 KillMode=process+`.tmux-cmd` 사이드카, WSL2는 터미널 열어 두기·VPS 권장) + 플랜 5태스크. 상류 3레포 리눅스 분기(uc 6e4bc07 v0.1.4·cd c1098a3 v0.1.7→b9a616a v0.1.8 codex TUI 신뢰 프롬프트·dm 20cc72d v0.1.2→e3577d3 v0.1.3 stat -f→-c·~/.cache). 설치기 0fd9c8b(0.1.15)→6fc52ac(0.1.16)→ee7ed96(0.1.17)→28fa323(0.1.18: 신뢰 전 폴더는 enableAllProjectMcpServers 무시(Claude Code 2.1.196+), git 아닌 작업 폴더는 chat/이 별개 프로젝트 → `~/.claude.json` projects[<work>·<work>/chat].hasTrustDialogAccepted=true 선등록, state.trust_added로 remove 역적용)→e38a2f6 README. Win10 WSL2 실기 7·8차(rc2→v1.4.0)로 설치·기동·제거 확인
+- 2026-09-08 공지 채널 1522490241859059784에 agentlayer v1.4.0 윈도우(id 1546681035939381289)·하네스 윈도우 지원(id 1546694530210857050)·WSL 확인 목록(id 1546699591137759282) 3건 게시 — 0.1.14 공지 여부 항목은 이것으로 흡수. 공지가 "매뉴얼 v3.0 그대로"라 했으나 매뉴얼 2장은 아직 "리눅스·윈도우 미검증" 문구(스펙 "검증 뒤 별도" 항목 미이행)
+- 2026-09-09 재정박: SESSION.md 현재 상태가 9/5에 멈춰 있어 실물 대조로 정정. discord-multiagent `_shared/learnings.md` 미커밋 10줄은 봇 자체 교훈(7/29·8/28 날짜)이라 무접촉
+
+- 2026-09-09 collab 봇 재기동: 사용자가 /exit로 직접 종료 → `launchctl kickstart gui/$(id -u)/com.folder-bot.collab` 한 줄로 복구(8/28 관례). tmux collab-bot 21:14:51 생성, MCP 로그 `~/Library/Caches/claude-cli-nodejs/-Users-soonho-ai-folder-collab/mcp-logs-plugin-discord-discord/2026-09-09T12-14-52-226Z.jsonl` "Successfully connected (transport: stdio) in 472ms", 첫 기동 무로그 스킵 미발생, 신뢰 프롬프트 없음
+- 2026-09-09 사용자 고지: "다른 폴더에 이번에 모든 하네스를 리눅스, 윈도우 지원되게 수정했어" — 어느 폴더·어느 레포인지 미특정. 설치기 pins(dm v0.1.3·cd v0.1.8·uc v0.1.4)와 상류 태그가 이미 리눅스 분기를 담고 있으므로, 추가 수정분이 새 태그·핀 범프를 요구하는지 다음 세션에 확인
+
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
@@ -179,3 +193,5 @@ pins codex-discord v0.1.6 + plugin.json·marketplace.json 0.1.14(커밋 73371b7 
 - 9/2 세션이 고친 파일: 이 레포는 `SESSION.md`만. 레포 밖은 봇 4개 폴더의 SESSION.md(각 봇이 자기 손으로 갱신)·`~/.claude/logs/bot-restart.log`(추가만)
 - 9/3 세션이 고친 파일: 이 레포는 `SESSION.md`만. 상류 `~/ai-folder/dev/codex-discord/{src/index.mjs,src/rollout.mjs,src/tmux.mjs,test/rollout.test.mjs,test/tmux.test.mjs}` 커밋 7d4e6e2 푸시 + 그 레포 SESSION.md 결정 기록 1줄 추가(미커밋)
 - 9/5 세션이 고친 파일: 이 레포는 `plugins/harness-installer/skills/configure-harness/generator/pins.json`(codex-discord v0.1.6)·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.14) 커밋 73371b7 푸시 + `SESSION.md`. 상류 `~/ai-folder/dev/codex-discord/scripts/tui-up.sh` 커밋 88c0b04 푸시, 태그 v0.1.6 푸시
+- 9/7~9/8 세션이 고친 파일(재구성): 이 레포 `docs/superpowers/{specs,plans}/2026-09-07-linux-service-layer*.md`·`plugins/harness-installer/skills/configure-harness/generator/{harnessctl.py,pins.json}`·`SKILL.md`·`tests/test_harnessctl.py`·`README.md`·plugin.json/marketplace.json(0.1.18). 상류 `~/VSCodeWorkspace/usage-coach`(v0.1.4)·`~/ai-folder/dev/codex-discord`(v0.1.8)·`~/ai-folder/dev/discord-multiagent`(v0.1.3). 검증 기록 `~/ai-folder/dev/agentlayer/docs/linux-wsl2-verification.md`(6~8차)
+- 9/9 세션이 고친 파일: 이 레포 `SESSION.md`만(재정박 정정·마감). 레포 밖은 collab 봇 tmux 세션 재생성(파일 무접촉)
