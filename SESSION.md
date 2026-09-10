@@ -32,6 +32,8 @@ pins folder-bot 0.1.6 + 0.1.19(c6c3195), ubuntu-agent VM 실측 2회(뒷정리·
 등록·0.1.8 설치, 임시 폴더로 add(WARN·사이드카만)→start dry-run(tmux 직접)→doctor(rc 0)→remove(잔존 0) 통과.
 호스트 `/usr/local/sbin/claude-bridge-watch.sh` ensure()에 `*.tmux-cmd` 순회 블록 추가(백업 .bak-0910), 가짜 사이드카로
 세션 자동 생성 검증. **실제 봇 add·pair는 미착수** — 대상 폴더·토큰·채널 사용자 결정 대기.
+9/10 밤 마감: 재개 지점 = **0.2 헤르메스 실제 폴더 봇 등록** — 정식 경로는 컨테이너에서 `claude` 띄워 `/configure-bot`
+(수동 botctl 아님). 사용자 결정 3건(폴더·이름/세션·토큰/채널) 미수령. 상류 folder-bot·이 레포 모두 커밋 클린.
 **잔존**: 매뉴얼 v3.0 2장 "리눅스·윈도우(WSL)는 아직 검증 전" 문구가 공지("매뉴얼
 v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 유지.
 
@@ -40,8 +42,9 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 
 0.2. **헤르메스 컨테이너 실제 폴더 봇 등록**(전제 전부 완료, 사용자 입력만 남음) — 결정할 것: 대상 폴더
    (`/opt/data/ai-company`는 헤르메스 관리 폴더라 CLAUDE.md 지침 블록 혼선 가능 → 별도 폴더 권장)·봇 이름·세션명·
-   디스코드 토큰·채널. 절차: 옆 pane(`hermes` alias로 진입) 대상 폴더에서 `/configure-bot` add→pair→start +
-   `~/.claude.json` projects.<폴더>.hasTrustDialogAccepted 선등록. 기동 뒤 검증 = 디스코드 응답 + 감시자 복구
+   디스코드 토큰·채널. 절차(정식 = 플러그인 경로): 옆 pane에서 `hermes`(호스트 alias) → 대상 폴더 → `claude` →
+   `/configure-bot`이 add→pair→start·신뢰 등록·doctor를 대화로 진행(systemd 없음은 스킬이 고지 후 계속).
+   사용자 몫 = 포탈에서 봇 앱·토큰 발급, 토큰은 컨테이너에 클립보드가 없어 폴더의 `.bot-token` 파일 또는 직접 붙여넣기. 기동 뒤 검증 = 디스코드 응답 + 감시자 복구
    (`systemctl restart claude-bridge.service` 후 journalctl에 "<세션> session ensured (folder-bot sidecar)").
    botctl 경로 `~/.claude/plugins/cache/folder-bot/folder-bot/0.1.8/skills/configure-bot/generator/botctl.py`.
    하네스 전체(harnessctl·상류 3레포) 컨테이너 모드는 두 번째 실수요 전까지 보류(9/10 결정)
