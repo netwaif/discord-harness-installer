@@ -158,6 +158,7 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 2026-09-10 folder-bot 0.1.8 systemd 없음 폴백 설계: 판정은 `shutil.which("systemctl")` 부재(바이너리 없음 = 컨테이너)로 한정 — 바이너리는 있는데 버스만 죽은 WSL2 경우는 기존 doctor WARN 경로 유지. 부재 시 유닛 파일 자체를 안 쓰고 사이드카만(bot-restart 정본 보존), doctor 유닛 FAIL 면제, start는 기존 tmux 직접 기동 분기 재사용. autostart 플래그는 건드리지 않음. 코덱스 엔진 컨테이너 모드는 범위 밖(systemctl 호출만 WARN 흡수)
 - 2026-09-10 헤르메스 컨테이너 재기동 복구 주체 = 호스트 감시자(claude-bridge-watch.sh)가 컨테이너 `/opt/data/.config/systemd/user/*.tmux-cmd`를 순회 — botctl 0.1.8 사이드카를 정본으로 재사용해 봇 추가 때 감시자 무접촉. 컨테이너 내부 cron·supervisor 대안은 이미 있는 감시자 재사용이 더 단순해 채택 안 함
 - 2026-09-10 컨테이너 편의 도구는 볼륨 안 `~/.local/bin`(=/opt/data/.local/bin)에 정적 바이너리로만(apt 금지 — root 없음·재생성 시 소실). glow 3.0.0 설치, less 없어 `glow -t` 사용
+- 2026-09-10 헤르메스 기동 정본 2원화 확정(사용자): 기존 4세션(claude-bridge·hostinger-bot·codex-bridge·gemini-bridge)은 감시자 하드코딩 줄 그대로(옮기지 않음), 신규 봇은 반드시 botctl로만 생성하고 감시자에 손으로 줄을 추가하지 않는다. hostinger-bot·claude-bridge의 botctl 이관은 실제 봇 등록 안정 뒤 별도 판단, 브리지 2개는 컨테이너 코덱스 모드 보류라 이관 대상 아님
 
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
