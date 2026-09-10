@@ -7,6 +7,6 @@
   },
   "plugins": {
     "multi-agent-starter": "3.5.0",
-    "folder-bot": "0.1.7"
+    "folder-bot": "0.1.8"
   }
 }
