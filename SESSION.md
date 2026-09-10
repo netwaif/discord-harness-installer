@@ -26,22 +26,20 @@ agentlayer `docs/linux-wsl2-verification.md`에 기록. 9/8 공지 채널에 "�
 pins folder-bot 0.1.6 + 0.1.19(c6c3195), ubuntu-agent VM 실측 2회(뒷정리·linger 원복 완료).
 9/10 마감: 재개 지점 = **0.2 folder-bot 0.1.7 systemd 없음 폴백**(컨테이너 이식, 사용자 "다음에 작업")
 → 0.25 WSL2 확인 → 0.3 매뉴얼 2장 정정. 헤르메스 컨테이너 폴더 봇은 0.1.7 전까지 `--no-autostart` 수동 3줄만 가능.
+**9/10 낮 세션: folder-bot 0.1.8 "systemd 없음 폴백" 완료** — 상류 커밋 2649666·태그 v0.1.8 푸시(main),
+설치기 pins 0.1.8·0.1.21 커밋 푸시. 상류 테스트 36·설치기 46 통과. 헤르메스 컨테이너 실적용은 아직(다음 단계 0.2).
 **잔존**: 매뉴얼 v3.0 2장 "리눅스·윈도우(WSL)는 아직 검증 전" 문구가 공지("매뉴얼
 v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 유지.
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-0.2. **folder-bot 0.1.7 "systemd 없음 폴백"**(사용자 "다음에 작업" 9/10) — 목적 = 이식성 네 번째 환경(컨테이너, 헤르메스가 첫 실물).
-   ①botctl: systemctl·loginctl 부재(FileNotFoundError)를 잡아 크래시 대신 WARN, 유닛 없이 사이드카
-   `<세션>.tmux-cmd`만 남김(bot-restart 원격 재시작 유지) ②SKILL.md 게이트 "systemd 없으면 자동 기동 없이
-   진행(재기동은 외부 몫) 고지 후 계속" ③테스트 2건(HARNESS_OS=Linux + systemctl 부재 시뮬레이션) ④태그
-   v0.1.7 → 설치기 pins·버전 범프. 규모 ~20줄. ⑤별건: 헤르메스 호스트 `/usr/local/sbin/claude-bridge-watch.sh`를
-   세션 하드코딩 대신 사이드카 `~/.config/systemd/user/*.tmux-cmd` 순회로 고치면 폴더 봇 추가 때 감시자 무접촉.
-   컨테이너 적용 절차 = hermes 사용자(HOME=/opt/data)로 add→pair→start + 폴더 신뢰 선등록(~/.claude.json).
+0.2. **헤르메스 컨테이너에 folder-bot 0.1.8 실적용**(0.1.8 코드는 완료, 실물 검증 미실시) — 절차: 컨테이너 hermes
+   사용자(HOME=/opt/data)로 `claude plugin update folder-bot@folder-bot` → 스킬로 add→pair→start + 폴더 신뢰 선등록
+   (~/.claude.json projects.<폴더>.hasTrustDialogAccepted). 기대 출력: add에 "[WARN] systemd 없음 — 유닛 생략, 사이드카만",
+   doctor는 FAIL 없이 WARN. ⑤별건 유지: 호스트 `/usr/local/sbin/claude-bridge-watch.sh`를 세션 하드코딩 대신
+   사이드카 `~/.config/systemd/user/*.tmux-cmd` 순회로 고치면 폴더 봇 추가 때 감시자 무접촉.
    하네스 전체(harnessctl·상류 3레포) 컨테이너 모드는 두 번째 실수요 전까지 보류(9/10 결정)
-0.25. Win10 WSL2에서 folder-bot 테스트 미실시 — 0.1.7 나온 뒤 한 번만(`claude plugin update folder-bot@folder-bot`
-   → 스킬로 add·start·remove 한 바퀴). 유닛 경로는 VM 실측과 동일 코드라 확인 성격
 0.3. **매뉴얼 v3.0 2장 정정**(~/VSCodeWorkspace/discord-multiagent-manual/index.html,
    git 아님·8/22 빌드): "리눅스·윈도우(WSL)는 아직 검증 전이라 지원을 확정하지
    않습니다" → 지원 확정 + WSL2 "터미널 열어 두기"·VPS 권장 + 토큰 저장 대체
@@ -152,6 +150,7 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 2026-09-09 (밤) 설치기 pins folder-bot 0.1.1→0.1.6 + 0.1.19(c6c3195 푸시). folder-bot marketplace.json이 0.1.1에 멈춰 있던 것이 8/11 "낡은 기록"의 실체 — 0.1.6으로 정합. 매뉴얼 v3.0 2장 문구 정정(0.3)은 여전히 잔존
 
 - 2026-09-10 헤르메스 컨테이너 폴더 봇 후속 문답 — 0.1.6 기준 컨테이너: `--no-autostart`면 add·pair·start·stop·remove 동작(systemctl 무호출), 자동 기동 켠 add는 systemctl 부재로 크래시, 스킬 게이트는 중단, bot-restart는 사이드카 없어 불가. **0.1.7 폴백 가치 판정 = 있음**(컨테이너가 이식성 마지막 빈칸, 비용 ~20줄) 단 폴더 봇 한정·실물은 헤르메스 하나. 사용자 절차는 환경 불문 동일(플러그인→"봇으로 만들어줘"→포탈→토큰 파일), 컨테이너만 재기동 배선(호스트 감시자) 추가 — 감시자를 사이드카 순회로 고치면 그것도 사라짐. 사용자 "일단 기록, 다음에 작업" → 다음 단계 0.2·0.25 등재
+- 2026-09-10 folder-bot 0.1.8 systemd 없음 폴백 설계: 판정은 `shutil.which("systemctl")` 부재(바이너리 없음 = 컨테이너)로 한정 — 바이너리는 있는데 버스만 죽은 WSL2 경우는 기존 doctor WARN 경로 유지. 부재 시 유닛 파일 자체를 안 쓰고 사이드카만(bot-restart 정본 보존), doctor 유닛 FAIL 면제, start는 기존 tmux 직접 기동 분기 재사용. autostart 플래그는 건드리지 않음. 코덱스 엔진 컨테이너 모드는 범위 밖(systemctl 호출만 WARN 흡수)
 
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
@@ -221,3 +220,4 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 9/10 세션이 고친 파일: 이 레포 `SESSION.md`만(문답·다음 단계 등재·마감)
 
 - 2026-09-10 folder-bot 0.1.7은 WSL2 실측 발견분(add enable만·빈 CLAUDE.md 삭제·SKILL WSL 버스 안내)으로 먼저 소진(b5149e9, 설치기 v0.1.20 pins 0.1.7). "systemd 없음 폴백"은 **0.1.8**로 번호 변경 — 다음 단계 0.2의 0.1.7→0.1.8로 읽을 것. 0.25(WSL2 폴더 봇 테스트)는 agentlayer 세션에서 완료(NAS RESULT-wsl2-folderbot-20260910.md, 통과).
+- 9/10 낮 세션이 고친 파일: 이 레포 `plugins/harness-installer/skills/configure-harness/generator/pins.json`(folder-bot 0.1.8)·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.21)·`SESSION.md`. 상류 `~/VSCodeWorkspace/folder-bot`: `plugins/folder-bot/skills/configure-bot/{generator/botctl.py(has_systemd·systemctl_user·enable_linger·write_tmux_unit·write_unit·cmd_doctor),SKILL.md(1. 전제 점검 OS 게이트)}`·`README.md`(전제 문구)·`plugins/folder-bot/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.8)·`tests/test_botctl.py`(run_no_systemd + 테스트 2건) — 커밋 2649666, 태그 v0.1.8
