@@ -20,7 +20,7 @@
 
 1. 사용자 질문 후속 검토: 마감이 5분 걸리는 세션의 완료 신호 — 지금은 rotate의 "재시작 들어감" 게시가 유일한 신호, "입력 중…" 상한 5분이 마감보다 짧을 수 있음 → 상한 10분 또는 마감 진행 중 typing 유지 검토.
 2. folder-bot 지침 템플릿 보강: (a) 답에 화자 라벨 흉내 금지(맥 codex AGENTS.md엔 있고 템플릿엔 없음 — 컨테이너 codex가 "[netwaif]" 흉내) (b) rotate엔 웹훅 없음·바로 다음 메시지(codex가 웹훅 알림 지어냄, 맥·컨테이너 2회).
-3. D2 WSL2 칸(미룸). 리눅스 VM codex/agy는 범위 밖.
+3. **WSL2 실기(사용자가 부트캠프 Win10에서 진행 중)**: 지시서 `/Volumes/private/mac-to-win10/README-agentlayer-wsl2-thread-A.md`(folder-bot 0.1.13·codex-discord v0.1.19·설치기 0.1.28, 3엔진 A단계, codex bwrap 확인·CODEX_TUI_SANDBOX 수동 폴백). 결과 `RESULT-wsl2-thread-A-YYYYMMDD.md`가 오면 매트릭스 WSL2 열 갱신. VM은 건너뜀(Claude는 D2로 검증, codex/agy VM은 범위 밖 — 사용자 결정 9/11).
 4. 이월: 붙여넣기 유실 근본 원인(agy 도구 턴 직후 첫 paste, v0.1.17 재시도로 완화) / agy `file://` 경로 링크 / codex 업데이트 프롬프트가 더미 턴 Enter 삼킴(`check_for_update_on_startup=false` 미적용) / tui-restart.sh 스레드 창 동반 종료 / folder-bot 테스트 `threads/999/log.md` 오염 / 맥 codex remove launchctl bootout 실호출 / 스레드 첫 메시지가 멘션 없이 오면 컨텍스트 큐에 쌓였다가 다음 트리거에 합쳐져 log.md Q가 두 문장으로 보임(수다 채널 게이트 on 정상 동작).
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
