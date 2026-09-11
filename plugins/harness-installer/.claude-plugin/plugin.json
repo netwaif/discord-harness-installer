@@ -1,6 +1,6 @@
 {
   "name": "harness-installer",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "description": "디스코드 멀티에이전트 하네스 통합 설치기. harnessctl 엔진이 preflight→fetch(핀 체크아웃)→plugins→pair→install(오버레이+위임)→verify를 멱등 수행하고, doctor가 버전 호환·위임 계약을 상시 점검한다. 정본은 각 레포(discord-multiagent·codex-discord·usage-coach), 엔진은 접합부만.",
   "author": { "name": "netwaif" }
 }
