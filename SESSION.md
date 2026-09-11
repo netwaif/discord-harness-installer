@@ -13,16 +13,15 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**9/11 밤 2차.** 맥 gemini 봇 복구(원인 SSH_CONNECTION) + **컨테이너 A단계 실기 통과 — agy(community-agy)·codex(creative-codex) 둘 다**(스레드 열기·스레드 대화 log.md·마감 rotate·[재정박] 복창).
-codex-discord v0.1.13(tmux `=` 정확 일치)·v0.1.14(paneHasEngine 창 실존)·v0.1.15(`CODEX_TUI_SANDBOX=off`)·v0.1.16(TUI·스레드 "입력 중…")·v0.1.17(붙여넣기 유실 재시도)·v0.1.18(codex 롤아웃 pane 기준 특정). 컨테이너·맥 데몬 4개 모두 v0.1.18. 컨테이너 codex는 디바이스 코드 재로그인(어제 "한도"는 오진 — 토큰 만료).
-컨테이너 = codex-discord v0.1.18·folder-bot 0.1.12, 맥 = v0.1.18(gemini·codex 데몬 재시작 완료). **설치기 0.1.26(pins codex-discord v0.1.18·folder-bot 0.1.12, 테스트 46 통과)**, folder-bot 매트릭스 문서 갱신(3f18359, 태그 없음).
+**9/11 밤 2차 마감.** 스레드 라이브 뷰 A단계 실기 **맥·컨테이너 × Claude·Codex·Gemini 6칸 통과**(WSL2·VM 미룸). codex-discord v0.1.13~v0.1.19(tmux `=`·창 실존·CODEX_TUI_SANDBOX·입력 중·붙여넣기 재시도·pane 롤아웃·lsof 필드 문자), folder-bot 0.1.13(컨테이너 codex .env에 CODEX_TUI_SANDBOX 자동), **설치기 0.1.28**(pins codex-discord v0.1.19·folder-bot 0.1.13, 테스트 46).
+데몬 4개(맥 gemini·codex, 컨테이너 community-agy·creative-codex) 모두 v0.1.19. 맥 codex 작업폴더 AGENTS.md에 재시작·스레드 지침 수동 이식(백업 AGENTS.md.bak-0911).
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. folder-bot 0.1.13: 리눅스 systemd-없음(컨테이너) 폴백의 `write_codex_env`가 `.env.<이름>`에 `CODEX_TUI_SANDBOX=off`를 넣도록(지금은 컨테이너 .env.creative-codex에 수동 추가) + 스레드 지침에 "rotate엔 웹훅 없음 — 바로 다음 메시지" 한 줄(codex가 웹훅 알림을 지어냄).
-2. 맥 codex 실기(codex-live, 5시간 한도 5% 미만 경고 — 리셋 후): 메인 1회 + 스레드 (a)(b)(c). 매트릭스 맥 Codex 칸 "A 됨"으로.
-3. D2 WSL2 칸(미룸).
-4. 이월: (a) 붙여넣기 유실은 v0.1.17 재시도로 완화 — 근본 원인(agy 도구 턴 직후 첫 paste 삼킴) 미해결, 로그 "붙여넣기 유실 감지" 빈도 관찰 / (b) agy 답의 `file://` 경로 링크 노출 / (c) codex가 답에 "[netwaif]" 입력 접두를 흉내냄 / (d) codex 업데이트 프롬프트가 tui-up 더미 턴 Enter를 삼킴(8/27 기록과 동일, `check_for_update_on_startup=false` 미적용) / (e) tui-restart.sh가 스레드 창까지 죽임 / (f) folder-bot 테스트 `threads/999/log.md` 오염 / (g) 맥 codex remove의 launchctl bootout 실호출.
+1. 사용자 질문 후속 검토: 마감이 5분 걸리는 세션의 완료 신호 — 지금은 rotate의 "재시작 들어감" 게시가 유일한 신호, "입력 중…" 상한 5분이 마감보다 짧을 수 있음 → 상한 10분 또는 마감 진행 중 typing 유지 검토.
+2. folder-bot 지침 템플릿 보강: (a) 답에 화자 라벨 흉내 금지(맥 codex AGENTS.md엔 있고 템플릿엔 없음 — 컨테이너 codex가 "[netwaif]" 흉내) (b) rotate엔 웹훅 없음·바로 다음 메시지(codex가 웹훅 알림 지어냄, 맥·컨테이너 2회).
+3. D2 WSL2 칸(미룸). 리눅스 VM codex/agy는 범위 밖.
+4. 이월: 붙여넣기 유실 근본 원인(agy 도구 턴 직후 첫 paste, v0.1.17 재시도로 완화) / agy `file://` 경로 링크 / codex 업데이트 프롬프트가 더미 턴 Enter 삼킴(`check_for_update_on_startup=false` 미적용) / tui-restart.sh 스레드 창 동반 종료 / folder-bot 테스트 `threads/999/log.md` 오염 / 맥 codex remove launchctl bootout 실호출 / 스레드 첫 메시지가 멘션 없이 오면 컨텍스트 큐에 쌓였다가 다음 트리거에 합쳐져 log.md Q가 두 문장으로 보임(수다 채널 게이트 on 정상 동작).
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
 
@@ -141,6 +140,7 @@ codex-discord v0.1.13(tmux `=` 정확 일치)·v0.1.14(paneHasEngine 창 실존)
 - 2026-09-11 (밤 2차) **v0.1.16 "입력 중…" + v0.1.17 붙여넣기 유실 재시도**: 사용자 "대화가 심심하다" → TUI 메인·스레드 경로에 startTyping(붙여넣기 직후 8초 간격 sendTyping, relayReply 진입 시 stop, 상한 5분; 헤드리스 경로는 기존 interval). 직후 "계속 입력 중" 보고 → 컨테이너 community-agy 12:32 "이제 주말인데 뭐할까?"가 10:59와 같은 유실(데몬은 paste·Enter 완료, 입력줄 빈 채, agy 로그 흔적 0). 공통 조건 = 직전 턴에 도구 블록("ctrl+o to expand")이 있었고 그 뒤 첫 paste. 곧바로 같은 텍스트 재붙여넣기는 정상(2/2). 조치 = pasteToPane이 paste 뒤 화면을 캡처해 마지막 프롬프트 줄이 완전히 빈 `>`/`›`일 때만 1회 재시도(codex 플레이스홀더 "› Ask Codex…"는 비어 있지 않아 재시도 없음 → 중복 방지), 로그 "붙여넣기 유실 감지". 근본 원인은 agy TUI 입력 위젯 포커스로 추정(미검증). 배포: 컨테이너 데몬 2개·맥 gemini·codex 데몬(launchctl kickstart -k) 모두 v0.1.17.
 - 2026-09-11 (밤 2차) **v0.1.18 codex 메인 답 미중계 수정**: 컨테이너 creative-codex "주말인데 뭐할까?"에 TUI는 답했는데 디스코드엔 "입력 중…"만 — 데몬 로그 "롤아웃 선택(cwd 일치…) 01a09067"(= 회전으로 죽은 스레드의 옛 롤아웃, 메인 실물은 01a09066). 원인 = 메인 세션 특정이 "cwd 일치 최신 롤아웃"이라 같은 cwd를 쓰는 스레드 세션과 충돌(exclude는 살아 있는 스레드 파일만). 실측: codex TUI 프로세스가 자기 롤아웃 jsonl을 fd로 열어 둠(`/proc/<pid>/fd`) → `findRolloutByPane`(agy presence 락과 같은 openFilesText 재사용, 맥 lsof·리눅스 /proc) 우선, cwd 검색은 폴백. 메인·스레드 분기 적용, 로그 "롤아웃 선택(pane 열린 파일)". 데몬 4개 재시작.
 - 2026-09-11 (밤 2차) **설치기 0.1.26 출시**: pins codex-discord v0.1.10→v0.1.18·folder-bot 0.1.11→0.1.12, plugin.json·marketplace.json 0.1.26, `python3 -m pytest -q tests` 46 통과, 태그 v0.1.26 푸시. folder-bot `docs/thread-live-view.md` 매트릭스: 컨테이너 Codex·Gemini "A 됨(9/11)", 맥 Codex "A 코드(실기 미완)", CODEX_TUI_SANDBOX 주석(docs만, 태그 없음 → pins 0.1.12엔 미포함). `docs/issues/2026-08-12-…silent-skip.md` 미커밋 변경은 여전히 손대지 않음(이전 세션분, 사용자 게시 승인 대기 초안).
+- 2026-09-11 (밤 2차) **맥 codex 칸 통과 + v0.1.19 + 설치기 0.1.28**: 사용자 정정 — usage-coach 그림의 %는 남은 양(5h 100% 남음), 내 "5% 미만" 판단은 TUI의 옛 경고 오독. 맥 codex 작업폴더(`~/ai-folder/codex-discord-workspace`)는 folder-bot 이전 봇이라 AGENTS.md에 스레드 지침 없음 → 템플릿 재시작·스레드 절을 `{BRIDGE_DIR}=~/ai-folder/dev/codex-discord`·`{ENV_FILE}=.env`로 렌더해 마커(`folder-bot:directive-codex`)로 수동 이식, tui-restart로 재기동. 첫 메시지에 "⚠️ ENOENT stat 'n/Users/…jsonl'" — v0.1.18 `rolloutFromOpenFiles`가 맥 `lsof -Fn`의 필드 문자 `n`을 경로에 포함(컨테이너 /proc엔 없어 미노출) → v0.1.19(경로는 `/` 시작·앞은 줄처음/공백/`n`, `n` 제거, 테스트 file까지 검증, 실물 lsof로 확인). 수다 채널(클로드 봇 requireMention=true, codex 게이트 on 기본)이라 스레드 안에서도 `@Codex Bot` 멘션 필요 — 사용자 지적 확인. 실기: 창 t900096, log.md 5턴, rotate → 새 세션 01a090ab, `[재정박]` 제출·복창. folder-bot 0.1.13(`write_codex_env`: linux·systemctl 부재 → CODEX_TUI_SANDBOX=off, 테스트 51) → 설치기 0.1.27 → v0.1.19 pins로 0.1.28. 매트릭스 문서 맥 Codex "A 됨"(06a4220).
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
@@ -219,3 +219,4 @@ codex-discord v0.1.13(tmux `=` 정확 일치)·v0.1.14(paneHasEngine 창 실존)
 - 9/11 밤 2차(속3) 세션이 고친 파일: codex-discord(태그 v0.1.16·v0.1.17) `src/index.mjs`(startTyping/stopTyping)·`src/tmux.mjs`(promptLineEmpty·pasteOnce·재시도)·`test/tmux.test.mjs` / 컨테이너·맥 데몬 재시작 / 이 레포 `SESSION.md`.
 - 9/11 밤 2차(속4) 세션이 고친 파일: codex-discord(태그 v0.1.18) `src/rollout.mjs`(rolloutFromOpenFiles·findRolloutByPane)·`src/agy-transcript.mjs`(openFilesText export)·`src/index.mjs`·`test/rollout.test.mjs` / 데몬 4개 재시작 / 이 레포 `SESSION.md`.
 - 9/11 밤 2차(속5) 세션이 고친 파일: 이 레포 `plugins/harness-installer/skills/configure-harness/generator/pins.json`·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.26, 태그 v0.1.26)·`SESSION.md` / folder-bot `docs/thread-live-view.md`(3f18359).
+- 9/11 밤 2차(속6) 세션이 고친 파일: codex-discord(태그 v0.1.19) `src/rollout.mjs`·`test/rollout.test.mjs` / folder-bot(태그 v0.1.13) `generator/botctl.py`·`tests/test_botctl.py`·plugin.json·marketplace.json·`docs/thread-live-view.md`(06a4220) / 이 레포 pins.json·plugin.json·marketplace.json(0.1.27·0.1.28, 태그 v0.1.27·v0.1.28)·`SESSION.md` / 맥 `~/ai-folder/codex-discord-workspace/AGENTS.md`(+`.bak-0911`)·`threads/1547961328784900096/`.
