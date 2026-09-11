@@ -13,41 +13,25 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**9/11 마감.** 부서 봇 계획 A·B 완료 + folder-bot 스레드 라이브 뷰(0.1.9/0.1.10) 완료. 상태: dev-claudecode(컨테이너, 기술개발팀/claude)
-등록·운용 중, 스레드 라이브 뷰 맥·컨테이너 실기 통과, 맥 gemini 봇 라이브 TUI 전환(codex-discord v0.1.9), 컨테이너 codex-discord
-v0.1.9(헤드리스 유지), 설치기 pins folder-bot 0.1.10·codex-discord v0.1.9(v0.1.23). 테스트: folder-bot 48·codex-discord 65·설치기 46.
-새 규칙(세 레포 CLAUDE.md): 기능 정의 = 3엔진×3OS(윈도우=WSL2), 착수 전 표 → 안 되는 칸 먼저 말하기.
-**대칭 현황**: Claude 열 완성(폴더 봇·라이브 TUI·스레드 전 환경). Codex·Gemini는 "라이브 TUI 대화"까지만 대칭 — 폴더 봇 통합
-(codex 컨테이너 폴백, agy 엔진 부재)·스레드 라이브는 미완. 상세 표는 9/11 결정 기록 마지막 항목.
-잔존: #9 게시 승인·매뉴얼 2장 정정·유튜브 미답글 등(다음 단계 0.3~0.7)은 그대로.
-
+**9/11 밤 마감.** C단계 완료(folder-bot 0.1.11: `--engine agy`·systemd 없음 codex/agy 폴백·permissions.allow 주입), D단계 등록 완료
+(컨테이너 creative-codex·community-agy 페어링·기동, agy 응답 확인·codex는 사용량 한도), D2 리눅스 VM Claude 스레드 통과,
+**E 스레드 라이브 뷰 B단계 완료(codex-discord 0.1.10, 맥·컨테이너 agy 실기 통과) + A단계 코드 완료(0.1.11 태그 푸시, folder-bot 0.1.12 태그 푸시)**.
+A단계 실기는 미완 — 맥 gemini TUI 재시작 중 agy 1.2.1 자동 업데이트 뒤 launchd 소유 tmux 서버 안에서 키체인 접근 불가("not signed in") 발견.
+컨테이너는 0.1.11·0.1.12 미반영. 설치기는 0.1.25(codex-discord v0.1.10 pin).
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-C. **folder-bot 0.1.11: codex 엔진 컨테이너 폴백 + `--engine agy`** — 레포 `~/VSCodeWorkspace/folder-bot`(v0.1.10). ①codex: systemctl 부재 시
-   데몬을 tmux 세션 `<이름>-daemon`(셸 pane에 send-keys — 관제탑 제약: pane 루트가 셸이어야 함)으로, TUI·데몬 둘 다 `.tmux-cmd` 사이드카,
-   start·stop·remove·doctor 대칭 ②agy: codex 경로 재사용, `.env`에 ENGINE=agy·AGY_BIN·TUI_PANE, 지침 파일은 agy 규칙 파일 확인 후
-   ③컨테이너 `~/.config/folder-bot/config.json`에 `codex_bridge_dir=/opt/data/codex-discord` ④add가 permissions.allow에
-   `Bash(bot-restart:*)`·`Bash(bot-thread:*)` 주입(auto 분류기가 bot-restart 차단한 실측) ⑤`.env.<이름>`의 CODEX_WORKDIR는 봇 폴더 절대경로 유지
-   (agentlayer 브리지 매칭 키). 착수 전 3×3 표 먼저.
-D. **크리에이티브팀/codex·커뮤니티·멤버십팀/gemini 등록**(컨테이너 `/opt/data/ai-company/부서/…`, 새 디스코드 앱 2개·전용 채널 2개 — 사용자 몫).
-   codex 봇은 상위 `/opt/data/ai-company/AGENTS.md`(헤르메스 규칙) 상속 여부 실측 후 무효화 문장 필요 여부 결정. 컨테이너 gemini도 이때 라이브 TUI로.
-D2. **미실측 칸 닫기**: 리눅스 VM(ubuntu-agent)·WSL2에서 Claude 스레드, Codex 실기동, Gemini 라이브 TUI 각 1회.
-E. **2차: codex·agy 스레드 라이브 뷰**(스레드마다 TUI pane + 붙여넣기 + tail — codex-discord 인스턴스당 pane 1개를 스레드당 N개로).
-0.25 **loadout 조각 갱신**: 세션 이어가기 조각 조건부에 "[folder-bot 스레드 세션인 경우] 정본은 threads/<ID>/SESSION.md" 한 줄.
-0.26 **컨테이너 codex-discord 브리지 재기동 정석**: C-c로 node 끊으면 세션 통째로 닫힘 → `systemctl restart claude-bridge.service`(호스트)로 감시자 복구.
-   `/usr/local/bin/bun` 심볼릭 링크(컨테이너 재생성 시 소실)는 무관했을 가능성 높음 — 재생성 때 필요하면 다시.
-0.3. 매뉴얼 v3.0 2장 정정 + 폴더 봇 12장에 스레드 라이브 뷰·회전 추가(~/VSCodeWorkspace/discord-multiagent-manual/index.html, tower 소관 — 사용자가 맡기면 직접)
-0.4. 9/8 공지 오타 1건("설치 절대로"→"설치 절 대로", 사용자 판단)
-0.5. 유튜브 미답글: B0KZOfXj6z0 박일용님(WSL2 안내 재사용)
-0.7. 서버 이설 뒤처리: 멤버십 서버 옛 채널 4개 삭제·ClaudeCode Bot 역할 권한 회수(사용자 몫)
-0. #9 이슈 게시(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md) 승인 대기 — 9/11 실측으로 "silent skip"의 한 원인이
-   `~/.claude/mcp-needs-auth-cache.json` 오염(토큰 없는 세션의 플러그인 실패가 전역 캐시)임이 밝혀짐 → 초안에 반영 후 게시
-1. tower 매뉴얼 개정 원고 검수(오면)
-2. 설치기 차기 이월(0.1.19 후보 목록 유지): preflight 동명 세션 검사·verify 무로그 진단·remove 재실행 판정
-5. folder-bot 이월: botctl stop /exit 방식·doctor sessionId·eams 실험·맨 claude 오용 감지 / [약속] 대시보드 봇·폴더·채널 매핑(bagbio1748님) /
-   [약속] MultiAgent custom registry 스펙(긱님)
-
+1. **맥 gemini 봇 복구(사용자 개입)**: `gemini-live:0.0`이 agy 로그인 화면에 멈춤. 원인 = agy 1.2.1(18:47 자동 업데이트)이 launchd가 시작한
+   공용 tmux 서버(PID 877, `academy-bot`으로 부팅 시 생성) 안에서 키체인 항목 `gemini`를 못 읽음(같은 바이너리를 내 셸·내 셸이 띄운
+   `tmux -L zztest` 서버에서 켜면 정상 로그인). 후보 조치: 맥 GUI 터미널에서 `agy`를 한 번 실행해 키체인 "항상 허용" → `bash scripts/tui-restart.sh .env.gemini`.
+   안 되면 공용 tmux 서버 재시작(맥 봇 전부 내려감 — 사용자 판단). 스레드 창 2개(t465054·t029632)는 재시작으로 이미 사라짐(정상, 다음 메시지에 재생성).
+2. **A단계 실기 — 컨테이너 community-agy로**: `/opt/data/codex-discord` pull(v0.1.11) → `git fetch --tags` → 데몬 2개 재시작(사이드카 up.sh) →
+   `claude plugin update folder-bot@folder-bot`(0.1.12) → creative-codex·community-agy `add` 재실행(지침 블록 갱신) → 실기 (a) 메인 "스레드로 해줘"
+   → thread.sh open·안내 (b) 스레드 대화 → `threads/<id>/log.md` (c) "세션 마감하고 재시작해" → SESSION.md 생성·rotate·다음 메시지 [재정박] 복창.
+3. 설치기 pins codex-discord v0.1.11·folder-bot 0.1.12 → 설치기 0.1.26 태그. folder-bot `docs/thread-live-view.md` 매트릭스 A단계 반영.
+4. codex 실기(creative-codex): 사용량 한도 해제 후 메인·스레드 각 1회. D2 WSL2 칸(미룸).
+5. 이월: codex-discord tui-restart.sh가 스레드 창까지 죽이는 건 문서화된 제약(보존은 후속) / tui-up agy 준비 대기 90초 부족 사례(컨테이너 자가 업데이트 중) /
+   folder-bot 테스트가 `threads/999/log.md`를 더럽힘 / 맥 codex remove의 launchctl bootout 실호출로 맥 경로 테스트 불가.
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
 
@@ -154,6 +138,12 @@ E. **2차: codex·agy 스레드 라이브 뷰**(스레드마다 TUI pane + 붙�
 
 - 2026-09-11 **folder-bot 0.1.10 + 맥 스레드 실기 통과 + 설치기 0.1.23** — 사용자 결정: auto-compact는 폴백 유지, 회전은 선택. 0.1.10(90cb694, 태그 v0.1.10): `bot-thread rotate/fresh`(threads/<ID>/SESSION.md 갱신 뒤 새 uuid·옛 ID previous·창 닫기), 라우팅 훅의 `[재정박]` 접두(fresh 표식 1회), PreCompact 훅 `bot-thread-compact`(사후 알림), Stop 훅이 `threads/<ID>/log.md`에 "시각 Q→A" 자동 기록, 지침(스레드 정본=threads/$DISCORD_THREAD_ID/SESSION.md·마감 4단계·메인은 스레드 관련 질문 시 log.md/SESSION.md/fetch_messages로 찾아 답). 테스트 48. 설계 문서 최종 구조로 정정(c110af3). 컨테이너 `plugin update` 0.1.10·add(PreCompact 주입), 맥 봇 5개 적용(훅·지침은 다음 재시작부터, 스크립트는 즉시). 맥 실기: search-youtube 봇이 `bot-thread open`으로 스레드 생성 → 담당 안내 → 창 t943829 → 답변 게시. 설치기 pins folder-bot 0.1.10, 0.1.23 태그 푸시. **다음**: C단계(folder-bot codex 컨테이너 폴백·agy 엔진) → D(크리에이티브팀/codex·커뮤니티·멤버십팀/gemini) → D2 실측 → codex·agy 스레드 2차. 0.1.11 항목: add가 permissions.allow에 `Bash(bot-restart:*)`·`Bash(bot-thread:*)`; loadout 조각에 "[folder-bot 스레드 세션]" 조건부 한 줄.
 
+- 2026-09-11 (밤) **C단계 folder-bot 0.1.11 릴리스**(68187e6, 태그 v0.1.11): `--engine agy`(codex 경로 재사용, `.env`에 ENGINE=agy·AGY_BIN, 지침은 `.agents/rules/discord-bot.md` + `trigger: always_on` — agy 1.2.0 내장 agy-customizations 문서가 GEMINI.md·AGENTS.md·.agents/rules 셋 다 읽는다고 명시, 사용자 파일 안 건드리려 전용 파일 선택) / systemd 없음 폴백: 데몬 tmux 세션 `<이름>-daemon` + 사이드카(`<이름>-daemon.tmux-cmd/.up.sh`, `<세션>.tmux-cmd/.up.sh`), pane 루트 셸 유지(`exit $?` 가드로 bash 5.1+ 마지막 명령 exec 최적화 차단) / claude add가 permissions.allow에 `Bash(bot-restart:*)`·`Bash(bot-thread:*)` 주입(`perm_allow` 기록·remove 회수). 테스트 51. 설치기 0.1.24(pins 0.1.11). 컨테이너 `config.json` codex_bridge_dir 기록, 플러그인 0.1.11, dev-claudecode 재등록(권한 주입). **호스트 감시자 패치**(`/usr/local/sbin/claude-bridge-watch.sh` 24행, 백업 `.bak-0911`): `*.tmux-cmd` 순회 때 `<세션>.up.sh`가 있으면 그것을 실행(codex/agy TUI는 tui-up.sh 경유·데몬 창) — auto 분류기 3회 차단 후 사용자가 수동 모드로 전환해 적용. 헤르메스 게이트웨이도 `hermes gateway restart`가 컨테이너에선 포그라운드로 도는 문제 → `hermes gateway stop` + entrypoint와 같은 `nohup hermes gateway run` 분리 실행으로 복구(감시자 없음, 컨테이너 재시작 때만 entrypoint가 띄움).
+- 2026-09-11 (밤) **D단계 등록**: creative-codex(크리에이티브팀/codex, 채널 1547782421980909598)·community-agy(커뮤니티·멤버십팀/gemini, 채널 1547782757365588149), 사용자 1062698028051472516, 토큰은 `.bot-token`으로 받아 pair가 소비. 둘 다 TUI+데몬 로그인. **codex 상위 AGENTS.md 상속 없음 실측**(롤아웃에 헤르메스 규칙 0건 → 무효화 문장 불필요). codex는 매 턴 "access token could not be refreshed" → 사용자 확인: 사용량 한도. agy 첫 `start`는 tui-up 90초 대기 부족으로 실패(컨테이너 agy가 기동 중 1.1.13→1.2.0 자가 업데이트 추정), 수동 키 입력 후 멱등 재실행으로 데몬 기동. 컨테이너 스레드 실기 통과(claude-discord 세션 중계 스크린샷).
+- 2026-09-11 (밤) **D2 리눅스 VM(ubuntu-agent) Claude 스레드 통과**: 맥 search-youtube 봇을 잠깐 멈추고 토큰·채널(1542141759679897690) 차용(사용자 승인, collab은 중요 봇이라 거부). folder-bot 0.1.5→0.1.11, add·pair·start·doctor OK, `bot-thread open`으로 스레드 → 훅 라우팅 → 창 t117440 → 답 게시. 정리: VM 봇 제거·폴더·신뢰·linger 원복, 맥 봇 복구, `vm suspend`.
+- 2026-09-11 (밤) **E 스레드 라이브 뷰 설계·구현(codex-discord)**: 접근 X 채택(데몬이 스레드 담당 — 훅 불가·REST 중복·토큰 이중 접속 불가 때문). B단계 0.1.10(5088088, 태그 v0.1.10): `findRolloutByCwd exclude`, `tui-up.sh --window <이름>`(기존 세션에 창, `SESSION_ID=… FILE=…` 보고, SKIP_BOOT 재검출), `src/threads.mjs` ThreadRegistry(`data-<이름>/threads.json`, 창 생성 직렬화), `index.mjs` 스레드 분기(CHANNEL_IDS 앞)·스레드별 tail·재시작 재부착·`TUI_THREADS`. 실기 결함 2건 수정: ①디스코드 "스레드 시작" 시스템 메시지가 메인 TUI에 붙여넣어짐 → `classifyMessage isSystem` ②창 부팅 답("System online and ready.")이 스레드에 유출 → 창 모드는 부팅 답 기록까지 대기. 맥 gemini(스레드 2개·재부착·메인 무영향)·컨테이너 community-agy 실기 통과. 설치기 0.1.25(pins v0.1.10). **A단계 0.1.11(c6304f1, 태그 v0.1.11)**: `scripts/thread.sh <env> open|rotate|post`, `tui-up.sh --thread <id> --prime "<문구>"`(창에 DISCORD_THREAD_ID, 더미 턴 대신 프라이밍), `primeText/reanchorPrefix/logLine`, threadCreate 사전 창 생성·안내, fresh+SESSION.md → [재정박] 접두, `threads/<id>/log.md` 자동 기록. 엔진 자체 재개(codex resume 등)는 안 씀 — claude와 같은 SESSION.md 재정박으로 통일. folder-bot 0.1.12(c74f131, 태그 v0.1.12): 지침 블록 스레드 절. 테스트: codex-discord 73 + 셸 2종, folder-bot 51. 스펙·플랜은 `docs/superpowers/{specs,plans}/2026-09-11-tui-threads*.md`(레포 gitignore 대상).
+- 2026-09-11 (밤) **agy 키체인 발견(미해결)**: 맥 gemini TUI를 tui-restart로 재시작하자 agy 1.2.1이 로그인 화면. 판별 실험: 같은 tmux 서버(877, launchd 시작)의 창에서 `agy -p`는 keyring OK 로그가 남는 경우도 있으나 대화형 TUI는 "You are not logged into Antigravity"(keyring 시도 로그 없음); 내 셸이 띄운 별도 tmux 서버(`-L zztest`)의 대화형 agy는 정상 로그인. 키체인 항목은 서비스명 `gemini`(agy는 `keyring.macOSXKeychain` 사용). 더 파지 않고 사용자 판단으로 넘김(다음 단계 1). 세션 중 모델이 잠시 Opus 4.8로 바뀌었다 돌아옴(설정에 fallback 없음 — 하네스 자동 대체 추정, 사용자가 /model로 복구).
+
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
@@ -225,3 +215,4 @@ E. **2차: codex·agy 스레드 라이브 뷰**(스레드마다 TUI pane + 붙�
 - 9/10 낮 세션이 고친 파일: 이 레포 `plugins/harness-installer/skills/configure-harness/generator/pins.json`(folder-bot 0.1.8)·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.21)·`SESSION.md`. 상류 `~/VSCodeWorkspace/folder-bot`: `plugins/folder-bot/skills/configure-bot/{generator/botctl.py(has_systemd·systemctl_user·enable_linger·write_tmux_unit·write_unit·cmd_doctor),SKILL.md(1. 전제 점검 OS 게이트)}`·`README.md`(전제 문구)·`plugins/folder-bot/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.8)·`tests/test_botctl.py`(run_no_systemd + 테스트 2건) — 커밋 2649666, 태그 v0.1.8
 - 9/10 밤 세션이 고친 파일(레포 밖, 호스팅어): 호스트 `/root/.bashrc`(alias hermes = `docker exec -it -u hermes -e LANG=C.UTF-8 hermes-agent-iqxn-hermes-agent-1 bash -l`) / 호스트 `/usr/local/sbin/claude-bridge-watch.sh`(사이드카 순회 블록, 백업 `.bak-0910`) / 컨테이너 `/opt/data/.local/bin/{glow,bot-up,bot-restart}` / `/opt/data/.claude/plugins/`(folder-bot 마켓플레이스+0.1.8) / `/opt/data/.config/folder-bot/bots.json`(빈 `{}`) / `/opt/data/.config/systemd/user/`(빈 디렉터리). 호스트 마운트: `/docker/hermes-agent-iqxn/data` → 컨테이너 `/opt/data`. 이 레포는 `SESSION.md`만
 - 9/11 세션이 고친 파일: 이 레포 `CLAUDE.md`(3엔진×3OS 절)·`plugins/harness-installer/skills/configure-harness/generator/pins.json`(folder-bot 0.1.10·codex-discord v0.1.9)·plugin.json·marketplace.json(0.1.23, 태그 v0.1.22·v0.1.23)·`SESSION.md`. folder-bot(`~/VSCodeWorkspace/folder-bot`, 태그 v0.1.9·v0.1.10): `assets/bot-thread.sh`·`bot-thread-route.sh`·`bot-thread-stop.sh`·`bot-thread-compact.sh`·`bot-up.sh`(인증 캐시 제거)·`directive-block.md`·`generator/botctl.py`·`SKILL.md`·`docs/thread-live-view.md`·`tests/test_botctl.py`·`CLAUDE.md`(신규). codex-discord(`~/ai-folder/dev/codex-discord`, 태그 v0.1.9): `src/agy-transcript.mjs`(신규)·`src/index.mjs`·`src/rollout.mjs`·`src/tmux.mjs`·`scripts/tui-up.sh`·`README.md`·`.env.gemini.example`·`skills/setup/SKILL.md`·`test/agy-transcript.test.mjs`·`test/fixtures/agy-transcript-sample.jsonl`·`test/tmux.test.mjs`·`CLAUDE.md`; 맥 운용 `.env.gemini`(TUI 3키, 백업 `.env.gemini.bak-0911`). 레포 밖(맥): `~/.local/bin/bot-thread*`·`bot-up`·`bot-restart`, 봇 5개 폴더 CLAUDE.md 블록·`.claude/settings.local.json` 훅 3종, `~/.config/folder-bot/bots.json`(thread_hooks). 레포 밖(컨테이너): `/opt/data/ai-company/부서/기술개발팀/claude/{CLAUDE.md,.claude/settings.local.json,.discord-state/*,threads/}`, `~/.config/folder-bot/bots.json`, `~/.config/systemd/user/dev-claudecode.*`, `~/.local/bin/bot-*`, 플러그인 캐시 folder-bot 0.1.10, `/opt/data/codex-discord`(v0.1.9), `/usr/local/bin/bun`(root 심볼릭 링크), `~/.claude/mcp-needs-auth-cache.json`(정리됨). 메모리: `feature-matrix-3x3.md`·`agy-tui-relay-possible.md`.
+- 9/11 밤 세션이 고친 파일: folder-bot(`~/VSCodeWorkspace/folder-bot`, 태그 v0.1.11·v0.1.12) `generator/botctl.py`·`assets/directive-block-codex.md`·`SKILL.md`·`tests/test_botctl.py`·`docs/thread-live-view.md`·plugin.json·marketplace.json / codex-discord(`~/ai-folder/dev/codex-discord`, 태그 v0.1.10·v0.1.11) 신규 `src/threads.mjs`·`scripts/thread.sh`·`test/threads.test.mjs`·`test/tui-up-window.test.sh`·`test/thread-sh.test.sh`, 수정 `src/index.mjs`·`src/rollout.mjs`·`src/routing.mjs`·`scripts/tui-up.sh`·`.env.example`·`README.md`·`test/rollout.test.mjs`·`test/routing.test.mjs` / 이 레포 pins.json·plugin.json·marketplace.json(0.1.24·0.1.25)·`docs/issues/2026-08-12-…silent-skip.md`(조건 4 추가)·SESSION.md / loadout(`~/VSCodeWorkspace/loadout` 0.5.2) session-handoff 조각·`tests/test_store.py` / 레포 밖: 호스트 `/usr/local/sbin/claude-bridge-watch.sh`(+`.bak-0911`), 컨테이너 `/opt/data/.config/folder-bot/{config.json,bots.json}`·`/opt/data/codex-discord/.env.{creative-codex,community-agy}`·사이드카 4개·`/opt/data/ai-company/부서/{크리에이티브팀/codex/AGENTS.md,커뮤니티·멤버십팀/gemini/.agents/rules/discord-bot.md}`, 맥 `~/ai-folder/gemini-discord-workspace/AGENTS.md`(지침 블록 마커 부착 — folder-bot 미등록 봇이라 수동), 맥 `~/ai-folder/dev/codex-discord/data-gemini/threads.json`, VM은 원복. 메모리: `no-stale-minor-items.md`·`one-item-at-a-time.md`.
