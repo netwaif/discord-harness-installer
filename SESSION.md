@@ -14,16 +14,15 @@
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
 **9/11 밤 2차.** 맥 gemini 봇 복구(원인 SSH_CONNECTION) + **컨테이너 A단계 실기 통과 — agy(community-agy)·codex(creative-codex) 둘 다**(스레드 열기·스레드 대화 log.md·마감 rotate·[재정박] 복창).
-codex-discord v0.1.13(tmux `=` 정확 일치)·v0.1.14(paneHasEngine 창 실존)·v0.1.15(`CODEX_TUI_SANDBOX=off` — 컨테이너 bwrap 불가 우회). 컨테이너 codex는 디바이스 코드 재로그인(어제 "한도"는 오진 — 토큰 만료).
-컨테이너 = codex-discord v0.1.15·folder-bot 0.1.12, 맥 = 작업트리 v0.1.15(데몬 미재시작). 설치기 0.1.25(pins v0.1.10) — 미갱신.
+codex-discord v0.1.13(tmux `=` 정확 일치)·v0.1.14(paneHasEngine 창 실존)·v0.1.15(`CODEX_TUI_SANDBOX=off`)·v0.1.16(TUI·스레드 "입력 중…")·v0.1.17(붙여넣기 유실 재시도). 컨테이너·맥 데몬 4개 모두 v0.1.17. 컨테이너 codex는 디바이스 코드 재로그인(어제 "한도"는 오진 — 토큰 만료).
+컨테이너 = codex-discord v0.1.17·folder-bot 0.1.12, 맥 = v0.1.17(gemini·codex 데몬 재시작 완료). 설치기 0.1.25(pins v0.1.10) — 미갱신.
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. **설치기 pins codex-discord v0.1.15·folder-bot 0.1.12 → 설치기 0.1.26 태그**(pins.json·plugin.json·marketplace.json, 테스트). folder-bot `docs/thread-live-view.md` 매트릭스 A단계 반영(컨테이너 agy·codex 통과).
+1. **설치기 pins codex-discord v0.1.17·folder-bot 0.1.12 → 설치기 0.1.26 태그**(pins.json·plugin.json·marketplace.json, 테스트). folder-bot `docs/thread-live-view.md` 매트릭스 A단계 반영(컨테이너 agy·codex 통과).
 2. folder-bot: 리눅스 systemd-없음(컨테이너) 폴백의 `write_codex_env`가 `.env.<이름>`에 `CODEX_TUI_SANDBOX=off`를 넣도록(지금은 컨테이너 .env.creative-codex에 수동 추가) + 스레드 지침에 "rotate엔 웹훅 없음 — 바로 다음 메시지" 한 줄(codex가 웹훅 알림을 지어냄).
-3. 맥 gemini·codex 데몬 재시작으로 v0.1.15 반영(`launchctl kickstart -k gui/501/com.codex-discord.gemini`·`.daemon`).
-4. D2 WSL2 칸(미룸).
-5. 이월: (a) 스레드 붙여넣기 간헐 소실(10:59 사례, 재전송 정상) / (b) agy 답의 `file://` 경로 링크 노출 / (c) codex가 답에 "[netwaif]" 입력 접두를 흉내냄 / (d) codex 업데이트 프롬프트가 tui-up 더미 턴 Enter를 삼킴(8/27 기록과 동일, `check_for_update_on_startup=false` 미적용) / (e) tui-restart.sh가 스레드 창까지 죽임 / (f) folder-bot 테스트 `threads/999/log.md` 오염 / (g) 맥 codex remove의 launchctl bootout 실호출.
+3. D2 WSL2 칸(미룸).
+4. 이월: (a) 붙여넣기 유실은 v0.1.17 재시도로 완화 — 근본 원인(agy 도구 턴 직후 첫 paste 삼킴) 미해결, 로그 "붙여넣기 유실 감지" 빈도 관찰 / (b) agy 답의 `file://` 경로 링크 노출 / (c) codex가 답에 "[netwaif]" 입력 접두를 흉내냄 / (d) codex 업데이트 프롬프트가 tui-up 더미 턴 Enter를 삼킴(8/27 기록과 동일, `check_for_update_on_startup=false` 미적용) / (e) tui-restart.sh가 스레드 창까지 죽임 / (f) folder-bot 테스트 `threads/999/log.md` 오염 / (g) 맥 codex remove의 launchctl bootout 실호출.
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
 
@@ -139,6 +138,7 @@ codex-discord v0.1.13(tmux `=` 정확 일치)·v0.1.14(paneHasEngine 창 실존)
 
 - 2026-09-11 (밤 2차) **컨테이너 A단계 실기 통과 + 결함 2건**: 절차 = `/opt/data/codex-discord` v0.1.12 체크아웃 → 데몬 2개 사이드카 up.sh 재시작 → `claude plugin update folder-bot@folder-bot`(0.1.12) → botctl add 재실행(community-agy·creative-codex, .env 보존·지침 갱신) → 메인 TUI 재시작. ①**TUI 재시작이 데몬을 죽임**: `tmux has-session -t community-agy`가 세션 부재 시 유일 접두 일치로 `community-agy-daemon`을 잡아 tui-up이 "엔진 아님 → 재생성"으로 kill(tmux 3.5a 실측: `-t creative-codex-dae`도 daemon에 해석). 수정 v0.1.13(tui-up.sh -t 전부·tui-restart kill-session을 `=이름`, 테스트 기대값 갱신). 맥은 데몬이 launchd라 미노출, 컨테이너 `<이름>-daemon` 명명과 충돌. ②**죽은 스레드 창 "살아 있음" 오판**: `display-message -p -t <세션>:<죽은 창>.0`이 오류 없이 세션 현재 창으로 폴백(3.5a·맥 3.6a 동일) → rotate 뒤 새 창을 안 만들고 paste-buffer에서 "can't find window", 데몬 재시작 시 죽은 스레드 "재부착". 수정 v0.1.14(`paneExists` = list-panes rc, paneHasEngine 선검사) → 재시작 로그 "폐기 2". 실기 판정 근거: (a) thread.sh open → 창 t263978·프라이밍 "준비됨"·threads.json 등록 (b) log.md "10:58 Q→A" 자동 기록 (c) SESSION.md 갱신(결정 기록 "세션 마감 및 rotate 실행")·"재시작 들어감" 게시·창 소멸 → "이어서하자"에 새 창(bf16755b)·`> [재정박] threads/…/SESSION.md 를 먼저 읽고…` 제출·현재 상태 복창 답. 부수: 데몬은 일반 메시지 수신을 로그에 안 남긴다(silent), 봇 토큰 API 조회로 채널 도착 여부를 확인하는 게 빠름.
 - 2026-09-11 (밤 2차) **컨테이너 codex 칸 통과 + v0.1.15**: creative-codex TUI의 "access token could not be refreshed"는 사용량 한도가 아니라 8/14 복사한 auth.json의 refresh token 만료 — pane에서 `codex login --device-auth`(코드 붙여넣기, 사용자 브라우저)로 재로그인 성공. 실기 중 **codex 샌드박스(bwrap) 컨테이너 불가** 발견: `bwrap: No permissions to create a new namespace`(userns_clone=1이어도 도커가 차단) → 셸 명령마다 "샌드박스 밖 실행" 승인 프롬프트가 떠 무인 pane 정지(thread.sh open이 대기, 수동 Enter로 통과). 사용자 "코덱스는 주로 2번(Approve for me)" → 판단: 2번은 자동 검토기라 검토 거부 시 또 멈추고 컨테이너는 샌드박스 자체가 없어 실질 보안 차이 없음 → 사용자 위임("알아서 해도 돼")으로 **3번 방식** = tui-up.sh `CODEX_TUI_SANDBOX=off` 분기(`--dangerously-bypass-approvals-and-sandbox`, 맥 기본 workspace-write 불변, v0.1.15) + 컨테이너 `.env.creative-codex`에 수동 추가. 재기동 뒤 "permissions: YOLO mode". 실기 판정: 메인 채널 답(TUI tail이 11:26 새 롤아웃으로 전환) → 스레드 open(창 t929513, 승인 우회 뒤엔 자동) → log.md 2턴 → SESSION.md 생성·rotate·창 소멸 → "이어서하자"에 새 창·`> [재정박]` 제출·복창 답. 부수: auto 모드 분류기가 우회 플래그 문자열이 든 편집(Bash·Edit 모두)을 차단 → 사용자가 수동 모드로 전환 후 적용.
+- 2026-09-11 (밤 2차) **v0.1.16 "입력 중…" + v0.1.17 붙여넣기 유실 재시도**: 사용자 "대화가 심심하다" → TUI 메인·스레드 경로에 startTyping(붙여넣기 직후 8초 간격 sendTyping, relayReply 진입 시 stop, 상한 5분; 헤드리스 경로는 기존 interval). 직후 "계속 입력 중" 보고 → 컨테이너 community-agy 12:32 "이제 주말인데 뭐할까?"가 10:59와 같은 유실(데몬은 paste·Enter 완료, 입력줄 빈 채, agy 로그 흔적 0). 공통 조건 = 직전 턴에 도구 블록("ctrl+o to expand")이 있었고 그 뒤 첫 paste. 곧바로 같은 텍스트 재붙여넣기는 정상(2/2). 조치 = pasteToPane이 paste 뒤 화면을 캡처해 마지막 프롬프트 줄이 완전히 빈 `>`/`›`일 때만 1회 재시도(codex 플레이스홀더 "› Ask Codex…"는 비어 있지 않아 재시도 없음 → 중복 방지), 로그 "붙여넣기 유실 감지". 근본 원인은 agy TUI 입력 위젯 포커스로 추정(미검증). 배포: 컨테이너 데몬 2개·맥 gemini·codex 데몬(launchctl kickstart -k) 모두 v0.1.17.
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
@@ -214,3 +214,4 @@ codex-discord v0.1.13(tmux `=` 정확 일치)·v0.1.14(paneHasEngine 창 실존)
 - 9/11 밤 2차 세션이 고친 파일: codex-discord(`~/ai-folder/dev/codex-discord`, 태그 v0.1.12) `scripts/tui-up.sh`(SSH_* unset) / 이 레포 `SESSION.md`. 맥 gemini-live 세션 재생성(agy brain f18d1f61).
 - 9/11 밤 2차(속) 세션이 고친 파일: codex-discord(태그 v0.1.13·v0.1.14) `scripts/tui-up.sh`·`scripts/tui-restart.sh`·`test/tui-up-window.test.sh`·`src/tmux.mjs` / 컨테이너 `/opt/data/codex-discord`(v0.1.14 체크아웃)·folder-bot 플러그인 0.1.12·`.agents/rules/discord-bot.md`(community-agy)·`AGENTS.md`(creative-codex) 지침 갱신 / 이 레포 `SESSION.md`.
 - 9/11 밤 2차(속2) 세션이 고친 파일: codex-discord(태그 v0.1.15) `scripts/tui-up.sh`(CODEX_TUI_SANDBOX 분기)·`.env.example` / 컨테이너 `/opt/data/codex-discord`(v0.1.15)·`.env.creative-codex`(CODEX_TUI_SANDBOX=off 추가)·`/opt/data/.codex/auth.json`(재로그인)·`threads/1547939407837929513/`(codex 스레드 실기 산출) / 이 레포 `SESSION.md`.
+- 9/11 밤 2차(속3) 세션이 고친 파일: codex-discord(태그 v0.1.16·v0.1.17) `src/index.mjs`(startTyping/stopTyping)·`src/tmux.mjs`(promptLineEmpty·pasteOnce·재시도)·`test/tmux.test.mjs` / 컨테이너·맥 데몬 재시작 / 이 레포 `SESSION.md`.
