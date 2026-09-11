@@ -13,76 +13,40 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**9/7~9/8 세션(마감 기록 없이 종료, 9/9 git·공지 대조로 재구성) — 리눅스·WSL2 지원
-완료·공지 완료.** 설치기 0.1.15(리눅스 분기)→0.1.16(cd v0.1.8 신뢰 프롬프트)→0.1.17(dm
-v0.1.3 stat/캐시)→0.1.18(오케·수다 폴더 신뢰 선등록 `~/.claude.json`), 상류 태그
-dm v0.1.3·cd v0.1.8·uc v0.1.4, README 요구 사항 갱신(e38a2f6). WSL2 실기 8차까지
-agentlayer `docs/linux-wsl2-verification.md`에 기록. 9/8 공지 채널에 "하네스 윈도우
-지원" 게시(id 1546694530210857050) — 0.3 공지 항목 해소. 테스트 46 통과(9/9 확인).
-9/9 세션: SESSION.md 재정박 정정 + collab 봇 kickstart 재기동(472ms 연결). 사용자
-고지: 다른 폴더에서 모든 하네스를 리눅스·윈도우 지원되게 수정함(상세 미수령 —
-설치기 pins·매뉴얼 반영 필요 여부는 다음 세션에 확인).
-**9/9 밤(agentlayer 세션 지시): folder-bot 0.1.6 리눅스 분기 완료** — 태그 v0.1.6 푸시, 설치기
-pins folder-bot 0.1.6 + 0.1.19(c6c3195), ubuntu-agent VM 실측 2회(뒷정리·linger 원복 완료).
-9/10 마감: 재개 지점 = **0.2 folder-bot 0.1.7 systemd 없음 폴백**(컨테이너 이식, 사용자 "다음에 작업")
-→ 0.25 WSL2 확인 → 0.3 매뉴얼 2장 정정. 헤르메스 컨테이너 폴더 봇은 0.1.7 전까지 `--no-autostart` 수동 3줄만 가능.
-**9/10 낮 세션: folder-bot 0.1.8 "systemd 없음 폴백" 완료** — 상류 커밋 2649666·태그 v0.1.8 푸시(main),
-설치기 pins 0.1.8·0.1.21 커밋 푸시. 상류 테스트 36·설치기 46 통과. 헤르메스 컨테이너 실적용은 아직(다음 단계 0.2).
-**9/10 밤 세션: 헤르메스 컨테이너 0.1.8 실측 + 호스트 감시자 사이드카 순회 완료** — 컨테이너에 folder-bot 마켓플레이스
-등록·0.1.8 설치, 임시 폴더로 add(WARN·사이드카만)→start dry-run(tmux 직접)→doctor(rc 0)→remove(잔존 0) 통과.
-호스트 `/usr/local/sbin/claude-bridge-watch.sh` ensure()에 `*.tmux-cmd` 순회 블록 추가(백업 .bak-0910), 가짜 사이드카로
-세션 자동 생성 검증. **실제 봇 add·pair는 미착수** — 대상 폴더·토큰·채널 사용자 결정 대기.
-9/10 밤 마감: 재개 지점 = **0.2 헤르메스 실제 폴더 봇 등록** — 정식 경로는 컨테이너에서 `claude` 띄워 `/configure-bot`
-(수동 botctl 아님). 사용자 결정 3건(폴더·이름/세션·토큰/채널) 미수령. 상류 folder-bot·이 레포 모두 커밋 클린.
-**잔존**: 매뉴얼 v3.0 2장 "리눅스·윈도우(WSL)는 아직 검증 전" 문구가 공지("매뉴얼
-v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 유지.
+**9/11 마감.** 부서 봇 계획 A·B 완료 + folder-bot 스레드 라이브 뷰(0.1.9/0.1.10) 완료. 상태: dev-claudecode(컨테이너, 기술개발팀/claude)
+등록·운용 중, 스레드 라이브 뷰 맥·컨테이너 실기 통과, 맥 gemini 봇 라이브 TUI 전환(codex-discord v0.1.9), 컨테이너 codex-discord
+v0.1.9(헤드리스 유지), 설치기 pins folder-bot 0.1.10·codex-discord v0.1.9(v0.1.23). 테스트: folder-bot 48·codex-discord 65·설치기 46.
+새 규칙(세 레포 CLAUDE.md): 기능 정의 = 3엔진×3OS(윈도우=WSL2), 착수 전 표 → 안 되는 칸 먼저 말하기.
+**대칭 현황**: Claude 열 완성(폴더 봇·라이브 TUI·스레드 전 환경). Codex·Gemini는 "라이브 TUI 대화"까지만 대칭 — 폴더 봇 통합
+(codex 컨테이너 폴백, agy 엔진 부재)·스레드 라이브는 미완. 상세 표는 9/11 결정 기록 마지막 항목.
+잔존: #9 게시 승인·매뉴얼 2장 정정·유튜브 미답글 등(다음 단계 0.3~0.7)은 그대로.
 
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-0.2. **헤르메스 컨테이너 실제 폴더 봇 등록**(전제 전부 완료, 사용자 입력만 남음) — 결정할 것: 대상 폴더
-   (`/opt/data/ai-company`는 헤르메스 관리 폴더라 CLAUDE.md 지침 블록 혼선 가능 → 별도 폴더 권장)·봇 이름·세션명·
-   디스코드 토큰·채널. 절차(정식 = 플러그인 경로): 옆 pane에서 `hermes`(호스트 alias) → 대상 폴더 → `claude` →
-   `/configure-bot`이 add→pair→start·신뢰 등록·doctor를 대화로 진행(systemd 없음은 스킬이 고지 후 계속).
-   사용자 몫 = 포탈에서 봇 앱·토큰 발급, 토큰은 컨테이너에 클립보드가 없어 폴더의 `.bot-token` 파일 또는 직접 붙여넣기. 기동 뒤 검증 = 디스코드 응답 + 감시자 복구
-   (`systemctl restart claude-bridge.service` 후 journalctl에 "<세션> session ensured (folder-bot sidecar)").
-   botctl 경로 `~/.claude/plugins/cache/folder-bot/folder-bot/0.1.8/skills/configure-bot/generator/botctl.py`.
-   하네스 전체(harnessctl·상류 3레포) 컨테이너 모드는 두 번째 실수요 전까지 보류(9/10 결정)
-0.3. **매뉴얼 v3.0 2장 정정**(~/VSCodeWorkspace/discord-multiagent-manual/index.html,
-   git 아님·8/22 빌드): "리눅스·윈도우(WSL)는 아직 검증 전이라 지원을 확정하지
-   않습니다" → 지원 확정 + WSL2 "터미널 열어 두기"·VPS 권장 + 토큰 저장 대체
-   명령(SKILL.md 리눅스 절 참조). 8/12 규율상 원고는 tower 소관 — 사용자가 이
-   세션에 맡기면 직접 수정 후 /deploy-manual discord-multiagent
-0.4. 9/8 공지(id 1546694530210857050) 오타 1건: "README 설치 절대로 설치기
-   플러그인을" → "설치 절 대로"(edit_message 가능, 사용자 판단)
-0.5. 유튜브 미답글 2건: ①B0KZOfXj6z0 박일용님 "맥에서만 되나요? 윈도우에서는
-   안되나요?"(8/24 발견) — 기존 답변 관례(v40AFadpg4w Hodoo307님 답글: WSL2 안내)
-   재사용 가능 ②_hZ5mozId_0(그래프 엔지니어링 영상) @202-z7g "매뉴얼
-   부탁드리겠습니다!" / 풍류왕 "윈도우로 되나용?"은 사용자가 직접 답글 완료,
-   스레드 위치 미특정(조회 중단됨)
-0.7. 서버 이설 뒤처리 확인(다음 세션 가벼운 체크): ①멤버십 서버 옛 채널 4개
-   삭제 여부(안전 판정 완료 — 8/26 이설 결정 기록의 삭제 가능 목록)
-   ②ClaudeCode Bot 역할의 채널 관리·웹훅 관리 권한 회수 여부(사용자 몫)
-0. **#9 이슈 게시** — 초안 완성(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md),
-   사용자 승인 대기. 승인 받으면 게시(직접/gh 대행은 사용자 선택) →
-   tower 세션에 URL 회신(대본 메타 반영용, 그쪽 사용자 게이트 있음)
-1. tower 세션 매뉴얼 개정 원고 검수(오면) — v2.2 원본
-   (~/VSCodeWorkspace/discord-multiagent-manual/)·SESSION.md 결정 기록 대조,
-   "16장→스킬 1개" 서사에서 포탈 수동 단계 잔존 경계선 확인
-2. 설치기 차기 이월(0.1.19 후보 — 0.1.14~0.1.18은 9/5·9/7~8 핀·리눅스로 소진): ①preflight/verify 로컬 동명 세션 검사
-   ②verify 무로그 스킵 진단 메시지에 이름 충돌 안내(다른 기기 포함)
-   ③pins.json plugins.folder-bot 0.1.1→0.1.5 정정(기록용 — plugin install은
-   버전 미지정 최신 설치라 기능 무관, 8/11 확인) ④remove 재실행 "이미 제거됨"
-   판정 부재(uninstall.sh 부재 WARN 영구 잔존) ⑤remove 재실행 로그 모순
-   ("상태 보존(state.json)" 출력인데 실제 파일 미생성)
-5. folder-bot 차기 이월: ①botctl stop을 /exit 정상 종료 방식으로(현 kill-session은
-   유령 리스 생성 — 8/6 원인 격리) ②doctor MCP 판정 sessionId 기준 구분(8/6 완화만
-   반영) ③eams 무조건 주입 여부 + 미신뢰 폴더 재현 실험(ct-reply §3.17)
-   ④봇 세션 수동 재기동 UX — 맨 claude 기동 오용 감지/안내(8/6 실사용 사고)
-6. 차기 이월분 기록 유지: #18/#19/#20/#21/#25(remove 품질)·#16(brew prefix 검사)·
-   bot-up 락 240s 증폭(상류)·"수다 봇 폴더 하위 분리"는 d10e6f9로 해소됨
-7. **[약속] 대시보드에 봇·폴더·채널 매핑 표시** — bagbio1748님 블랙박스화 우려에 "다음 업데이트 후보로 적어두겠다" 공개 답변(2026-08-24, 채널 1519510111083561021 답글 1541256639401820301). bots.json 정본을 대시보드에 노출하는 방향
-5. **[약속] MultiAgent 레포 custom registry 별도 스펙 착수** — 긱님(geek7942) 제안, "함께 검토하겠다" 공개 답변(2026-08-03). 1단계(등록부 병합: 원본+`_local`, update 보존)만 우선. 잊히면 안 됨.
+C. **folder-bot 0.1.11: codex 엔진 컨테이너 폴백 + `--engine agy`** — 레포 `~/VSCodeWorkspace/folder-bot`(v0.1.10). ①codex: systemctl 부재 시
+   데몬을 tmux 세션 `<이름>-daemon`(셸 pane에 send-keys — 관제탑 제약: pane 루트가 셸이어야 함)으로, TUI·데몬 둘 다 `.tmux-cmd` 사이드카,
+   start·stop·remove·doctor 대칭 ②agy: codex 경로 재사용, `.env`에 ENGINE=agy·AGY_BIN·TUI_PANE, 지침 파일은 agy 규칙 파일 확인 후
+   ③컨테이너 `~/.config/folder-bot/config.json`에 `codex_bridge_dir=/opt/data/codex-discord` ④add가 permissions.allow에
+   `Bash(bot-restart:*)`·`Bash(bot-thread:*)` 주입(auto 분류기가 bot-restart 차단한 실측) ⑤`.env.<이름>`의 CODEX_WORKDIR는 봇 폴더 절대경로 유지
+   (agentlayer 브리지 매칭 키). 착수 전 3×3 표 먼저.
+D. **크리에이티브팀/codex·커뮤니티·멤버십팀/gemini 등록**(컨테이너 `/opt/data/ai-company/부서/…`, 새 디스코드 앱 2개·전용 채널 2개 — 사용자 몫).
+   codex 봇은 상위 `/opt/data/ai-company/AGENTS.md`(헤르메스 규칙) 상속 여부 실측 후 무효화 문장 필요 여부 결정. 컨테이너 gemini도 이때 라이브 TUI로.
+D2. **미실측 칸 닫기**: 리눅스 VM(ubuntu-agent)·WSL2에서 Claude 스레드, Codex 실기동, Gemini 라이브 TUI 각 1회.
+E. **2차: codex·agy 스레드 라이브 뷰**(스레드마다 TUI pane + 붙여넣기 + tail — codex-discord 인스턴스당 pane 1개를 스레드당 N개로).
+0.25 **loadout 조각 갱신**: 세션 이어가기 조각 조건부에 "[folder-bot 스레드 세션인 경우] 정본은 threads/<ID>/SESSION.md" 한 줄.
+0.26 **컨테이너 codex-discord 브리지 재기동 정석**: C-c로 node 끊으면 세션 통째로 닫힘 → `systemctl restart claude-bridge.service`(호스트)로 감시자 복구.
+   `/usr/local/bin/bun` 심볼릭 링크(컨테이너 재생성 시 소실)는 무관했을 가능성 높음 — 재생성 때 필요하면 다시.
+0.3. 매뉴얼 v3.0 2장 정정 + 폴더 봇 12장에 스레드 라이브 뷰·회전 추가(~/VSCodeWorkspace/discord-multiagent-manual/index.html, tower 소관 — 사용자가 맡기면 직접)
+0.4. 9/8 공지 오타 1건("설치 절대로"→"설치 절 대로", 사용자 판단)
+0.5. 유튜브 미답글: B0KZOfXj6z0 박일용님(WSL2 안내 재사용)
+0.7. 서버 이설 뒤처리: 멤버십 서버 옛 채널 4개 삭제·ClaudeCode Bot 역할 권한 회수(사용자 몫)
+0. #9 이슈 게시(docs/issues/2026-08-12-claude-code-channel-lease-silent-skip.md) 승인 대기 — 9/11 실측으로 "silent skip"의 한 원인이
+   `~/.claude/mcp-needs-auth-cache.json` 오염(토큰 없는 세션의 플러그인 실패가 전역 캐시)임이 밝혀짐 → 초안에 반영 후 게시
+1. tower 매뉴얼 개정 원고 검수(오면)
+2. 설치기 차기 이월(0.1.19 후보 목록 유지): preflight 동명 세션 검사·verify 무로그 진단·remove 재실행 판정
+5. folder-bot 이월: botctl stop /exit 방식·doctor sessionId·eams 실험·맨 claude 오용 감지 / [약속] 대시보드 봇·폴더·채널 매핑(bagbio1748님) /
+   [약속] MultiAgent custom registry 스펙(긱님)
 
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
@@ -163,6 +127,33 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 2026-09-10 컨테이너 편의 도구는 볼륨 안 `~/.local/bin`(=/opt/data/.local/bin)에 정적 바이너리로만(apt 금지 — root 없음·재생성 시 소실). glow 3.0.0 설치, less 없어 `glow -t` 사용
 - 2026-09-10 헤르메스 기동 정본 2원화 확정(사용자): 기존 4세션(claude-bridge·hostinger-bot·codex-bridge·gemini-bridge)은 감시자 하드코딩 줄 그대로(옮기지 않음), 신규 봇은 반드시 botctl로만 생성하고 감시자에 손으로 줄을 추가하지 않는다. hostinger-bot·claude-bridge의 botctl 이관은 실제 봇 등록 안정 뒤 별도 판단, 브리지 2개는 컨테이너 코덱스 모드 보류라 이관 대상 아님
 
+- 2026-09-11 **정정: agy(gemini) 라이브 TUI 모드는 가능하다.** codex-discord 초기 개발 때 "agy는 롤아웃 파일이 없어 tail 불가"로 검증 없이 가정하고 코드 주석(index.mjs)·README에 박았고, 이 세션에서도 그 주석을 근거로 "불가"라고 재단정함. 사용자가 예전 agy 문답 결과를 기억하고 지적해 정정. 실측(agy 1.2.0, 맥): 대화별 `~/.gemini/antigravity-cli/brain/<대화ID>/.system_generated/logs/transcript.jsonl`에 스텝 단위(`USER_INPUT`/`PLANNER_RESPONSE`/`GENERIC`)로 실시간 기록, 대화 ID는 기동 배너 `agy --conversation=<UUID>`·`presence/<UUID>.lock`(pane PID lsof)·brain 최신 디렉터리로 특정 가능, 같은 대화를 다른 agy 프로세스로 열면 락 충돌 가능(파일 tail만 권장). agy 1.2.0에는 `--input-format/--output-format stream-json` 상주 모드도 있음(pane 없는 대안). 교훈: 코드 주석은 과거 가정이지 사실이 아니다 — 외부 도구 능력 판정은 실물(파일·바이너리)로 검증한 뒤 말한다.
+- 2026-09-11 **부서 봇 3개 계획 확정(사용자 "추가", "다 할거야")**: 대상 `/opt/data/ai-company/부서/{기술개발팀/claude, 크리에이티브팀/codex, 커뮤니티·멤버십팀/gemini}`(컨테이너에 빈 폴더 실존, 상위에 CLAUDE.md 없음·AGENTS.md만 → claude 봇은 상속 없음, codex 상속 여부는 D단계 실측). 기존 3봇(hostinger-bot·codex-bridge·gemini-bridge)은 유지, 새 디스코드 앱 3개·전용 채널 3개. 단계: A claude 등록(즉시 가능) → B codex-discord 0.1.9 agy 라이브 TUI 모드(transcript tail·대화 ID 3단 폴백·TUI_ENABLED codex 제한 해제·tui-up.sh agy 분기 `--dangerously-skip-permissions`) → C folder-bot 0.1.9(codex 엔진 systemd 없음 폴백=데몬 tmux+사이드카, `--engine agy` 추가, 컨테이너 config.json codex_bridge_dir) → D codex·gemini 등록 → E pins·매뉴얼 이월. 맥 현황 대조 완료: 맥 codex는 이미 라이브 TUI(`codex-live:0.0`), 맥 gemini는 헤드리스, 컨테이너는 둘 다 헤드리스(codex-discord v0.1.4, 로컬 레포 `~/ai-folder/dev/codex-discord`는 v0.1.8). **완료조건 표(3엔진×4환경, 9/11 확정)**: Claude=맥·리눅스·컨테이너·WSL2 전부 됨(WSL2는 9/10 실기 통과) / Codex=맥 됨·리눅스 부분(VM 9차 add·doctor만, 실기동 미실측)·컨테이너 C단계·WSL2 부분(포함 기록 없음) / Gemini=전부 B(+C)단계. 완료 = 12칸 전부 됨. 윈도우=WSL2(사용자 정의). 사용자 지시: 기능은 3엔진×3OS가 기본 정의, 안 되는 칸은 착수 전에 말할 것(세 레포 CLAUDE.md에 절 추가).
+
+- 2026-09-11 **B단계 설계(codex-discord 0.1.9 agy 라이브 TUI 모드)**: ①`src/rollout.mjs` RolloutTail에 `extract` 옵션 ②`src/agy-transcript.mjs` 신규 — `extractPlannerResponses`(PLANNER_RESPONSE·DONE·content 비공백만) + `findConversationByPane`(pane PID 열린 파일의 `presence/<UUID>.lock`(맥 lsof/리눅스 /proc fd) → 캡처 `--conversation=` → brain 최신) ③`src/tmux.mjs` `isEngineProc`/`paneHasEngine` 일반화 ④`src/index.mjs` TUI_ENABLED의 codex 제한 제거·ensureTuiTail 엔진 분기 ⑤`scripts/tui-up.sh` ENGINE=agy 분기(`$AGY_BIN --dangerously-skip-permissions`, --sandbox 없음, 준비=배너/`>`, STAMP 이후 새 brain 디렉터리 대기) ⑥테스트 agy-transcript·tmux agy 케이스 ⑦README/.env.example/주석 "agy TUI 불가" 정정 ⑧v0.1.9 태그, 맥 실기(옆 agy pane), 컨테이너 0.1.4→0.1.9. 컨테이너 agy 1.1.13도 brain/transcript.jsonl·presence 동일 확인. 레포 `~/ai-folder/dev/codex-discord`(v0.1.8, 테스트 `node --test`).
+
+- 2026-09-11 **관제탑(agentlayer-b3) wiring 접점 확인 완료** — 이쪽 변경 A(engine=agy 문자열 그대로, kind는 pane 프로세스로 gemini 판정)·B(고아 사이드카는 안 읽지만 bots.json 세션 일치로 ⌁ 섬, restore는 컨테이너 무관·나중에 agentlayer 컨테이너 진입 시 그쪽 규칙 추가)·C(`<이름>-daemon` 세션은 kind ""로 레코드 없음) 전부 문제 없음. D 빈틈은 그쪽이 고침: BridgeRoots에 설치기 경로 `~/.local/share/discord-harness/repos/codex-discord` 추가(5b5d11a 로컬, v1.4.3은 사용자 판단 뒤). **이쪽 준수 제약 2건**: ①데몬 tmux 세션은 pane 루트가 셸이어야 함(new-session에 node 직접 X, 셸 pane에 send-keys — 아니면 데몬이 spawn한 codex/agy 자식이 깊이 1로 잡혀 유령 레코드) ②`.env.<이름>`의 `CODEX_WORKDIR=`는 봇 폴더 절대경로 유지(브리지 매칭 키).
+
+- 2026-09-11 **B단계 코드 완료(미커밋, `~/ai-folder/dev/codex-discord` 작업트리 11파일)**: 신규 `src/agy-transcript.mjs`(extractPlannerResponses·conversationIdFromBanner/OpenFiles·findNewestConversation·findConversationByPane)·`test/agy-transcript.test.mjs`·`test/fixtures/agy-transcript-sample.jsonl`(실물 1.2.0 발췌), `src/tmux.mjs`(isEngineProc/treeHasEngine/paneHasEngine, codex 래퍼 유지), `src/rollout.mjs`(RolloutTail extract 옵션), `src/index.mjs`(TUI_ENABLED codex 한정 해제, ensureTuiTail 엔진 분기), `scripts/tui-up.sh`(ENGINE=agy: `$AGY_BIN --dangerously-skip-permissions`, 준비=배너/`> `, 더미 턴 화면 확인 후 Enter — 첫 send-keys 삼킴 실측 대응, brain 새 디렉터리 대기), README·.env.gemini.example·skills/setup/SKILL.md 정정. 테스트 65 통과. 맥 실기(임시 .env.agytest, 세션 agy-live-test, 디스코드 없이): tui-up 준비 완료 5초, presence 락으로 대화 특정, transcript에서 답변 추출 성공. **남은 것**: 디스코드 왕복 실기(맥 gemini 봇을 TUI 모드로 전환 — 사용자 승인 필요), 커밋·태그 v0.1.9, 컨테이너 0.1.4→0.1.9.
+
+- 2026-09-11 **A단계 dev-claudecode 등록 완료(디스코드 응답 확인만 남음)** — 봇 `dev-claudecode`, 폴더 `/opt/data/ai-company/부서/기술개발팀/claude`, 세션 `dev-claudecode`, 채널 1547782339940319262, 사용자 1062698028051472516, 토큰은 사용자가 `.bot-token`으로 저장(pair가 소비). 정식 경로(`/configure-bot`, 사전 답변 한 줄로 add→pair→start 무질문 진행) 통과. bots.json·사이드카 2개·access.json·CLAUDE.md 지침 블록 정상. 호스트 감시자 재시작 → journal "dev-claudecode session ensured (folder-bot sidecar)" 확인. **발견 1(컨테이너 고유)**: 봇 세션에서 discord 플러그인 MCP가 `✘ failed`(프로세스 spawn 없이 20ms 실패, 로그 파일 없음). 원인 = Claude Code 2.1.268의 MCP 런타임 v2(`mcp runtime arm: v2`)가 플러그인 명령 `bun`을 세션 PATH(`/opt/data/.bun/bin`)에서 못 찾음. hostinger-bot은 2.1.234(구 런타임)라 무사. 조치 = `docker exec -u root ln -s /opt/data/.bun/bin/bun /usr/local/bin/bun`(컨테이너 재생성 시 소실 — apt분과 같은 부류) + 봇 재기동(첫 재기동은 실패, 두 번째 성공 — 종료 경합 추정). 이식 과제: folder-bot doctor/bot-up에 "bun이 표준 경로(/usr/local/bin·/usr/bin)에 있는지" 검사·안내 추가(0.1.9 후보). **발견 2**: 봇 폴더 안에서 `claude`→`/configure-bot`으로 등록하면 configure 세션이 같은 폴더에서 플러그인을 물고 있음 — 이번 실패 원인은 아니었으나 스킬 마지막에 "등록 뒤 이 세션 /exit" 안내 필요(0.1.9 후보). 디버그 방법 정본: 같은 폴더에서 `claude -n dbg --channels plugin:discord@claude-plugins-official --debug` 25초 → `~/.claude/debug/<id>.txt`에서 `plugin:discord:discord` 라인.
+
+- 2026-09-11 **[후속 항목] 폴더 봇 스레드별 작업 분리(사용자 제안, 동감)** — `/branch`(대화 복제)는 라우팅을 못 풀어 부적합(플러그인은 토큰·상태 디렉터리 1 = 세션 1, 같은 토큰 이중 접속 불가). 설계 = "스레드 = 세션": 봇 세션이 라우터, 스레드 메시지 → `claude -p --resume <스레드 세션ID>`(첫 턴은 `-p --output-format json`으로 ID 획득, 메인 맥락 복제는 `--resume <메인> --fork-session`) → 스레드에 게시, 스레드→세션 맵 파일. codex는 `exec resume`, agy는 `--conversation`으로 3엔진 공통 규칙 가능(codex-discord 채널→세션 패턴 확장). 대가: 스레드 턴은 헤드리스(무스트리밍·pane 불가·권한 auto 상속·기본 순차). 위치 = folder-bot 지침 블록+라우팅 스크립트+맵, codex-discord 스레드 라우팅. 순서 = B·C·D 뒤.
+
+- 2026-09-11 **우선순위 변경(사용자): 폴더 봇 스레드 라이브 뷰를 B·C·D보다 먼저.** 설계 정본 `~/VSCodeWorkspace/folder-bot/docs/thread-live-view.md`(구조·bot-thread 명령표·Stop 훅·지침 블록·botctl 변경·범위 밖·매트릭스·완료조건). 전제 실측 3건: ①플러그인 인바운드는 chat_id뿐 → REST 채널 조회로 스레드 판별 ②세션 간 메시지 컨테이너 OK(uid 폴백 소켓 `/tmp/cc-socks-10000`, xtest→dev-claudecode 왕복) ③transcript `type=assistant` `message.content[].text`. 헤드리스안 폐기(사용자: 라이브 뷰가 기존 봇들과 일관, 터미널에서 과정 지켜봄). 가정: 스레드 창은 봇 tmux 세션 안 `t<short>`, 유휴 6h gc, `/branch` 대응(fork)은 1.1, codex·agy 스레드 라이브는 2차.
+
+- 2026-09-11 **folder-bot 0.1.9 스레드 라이브 뷰 구현 완료(미커밋) + 맥 로컬 실기 통과 + 컨테이너 임시 반영** — 신규 `assets/bot-thread.sh`(kind·ensure·post·open·gc·list, override BOT_THREAD_CURL/TMUX/CLAUDE/PROJECTS/BOTS_JSON)·`assets/bot-thread-stop.sh`(Stop 훅, DISCORD_THREAD_ID 없으면 exit 0, 마지막 사람 턴 이후 assistant text만 게시)·`docs/thread-live-view.md`, `directive-block.md` 스레드 절, botctl(write/remove_thread_hook·bots.json `thread_hook_cmd`·install_scripts 2종·doctor 점검·remove gc --all, **install_block 제자리 갱신**(업그레이드 시 옛 지침 잔존 결함 수정)), plugin.json·marketplace.json 0.1.9. 테스트 41 통과(36 기존 1건 수정 + 신규 5). 맥 실기(스크래치 봇 xt-bot, 가짜 curl): ensure→창 t333444→SendMessage→답변→Stop 훅→POST 본문 정확, gc→ensure `--resume`→이전 문장 기억. 컨테이너: 캐시 0.1.8 디렉터리에 4파일 덮어씀(임시, 태그 후 정식 설치 필요), add 재실행으로 스크립트·훅·지침 갱신, CLAUDE.md 머리에 "기술개발팀 · AI 개발자" 한 줄, 봇 재기동(플러그인 연결 02:41), 테스트 스레드 1547799194130055220("스레드 라이브 뷰 테스트") 생성 — 사용자 입력 대기. 관찰: /exit 직후 3초 뒤 start하면 첫 재기동의 플러그인 연결이 늦게 잡히는 경우 있음(count 확인 타이밍 문제였음, 실제는 연결됨).
+
+- 2026-09-11 **스레드 라우팅을 지침(모델 판단)에서 훅(결정적)으로 변경** — 컨테이너 1차 실기에서 메인 봇이 chat_id 비교 없이 스레드에 직접 답함(창·안내 없음). 실측: UserPromptSubmit 훅은 주입 메시지(세션 간·채널)에도 발화하고 `prompt`에 태그 원문이 통째로 옴 → 신규 `assets/bot-thread-route.sh`(UserPromptSubmit): `<channel source="plugin:discord:discord" chat_id>` 파싱 → access.json groups면 exit 0 → `bot-thread kind` → `ensure` → 첨부는 `fetch-attachments`(REST→inbox/<mid>/) → `deliver`(스레드 pane에 bracketed paste + Enter, 미제출 시 Enter 재전송) → 첫 메시지면 담당 안내 `post` → **exit 2(메인 처리 차단)**; 실패 시 exit 0 + "[스레드 라우팅 실패]" stdout 컨텍스트. botctl `THREAD_HOOKS`(UserPromptSubmit·Stop) 주입·회수, bots.json `thread_hooks`. 지침 블록 메인 절 단순화(훅이 처리, 실패 안내 붙으면 직접). 테스트 44 통과(라우팅 3건 추가). 맥 e2e(xt2-bot, SendMessage로 태그 메시지): 창 t000999 생성·전달·답변 게시·메인 차단 확인, 담당 안내 누락 버그(awk 탭 구분) 수정. 컨테이너 재반영·add·재기동(플러그인 연결, 훅 2종 등록) 완료 — 스레드 1547799194130055220 재실기는 사용자 입력 대기.
+
+- 2026-09-11 **컨테이너 2차 실기: 라우팅·재개·게시 통과 + 결함 5건 수정** ①담당 안내 누락(awk 탭) ②Stop 훅 flush 경합(답변이 transcript에 쓰이기 전 훅 실행, 49ms 종료 → 최대 3초 재시도 + `~/.claude/logs/bot-thread-stop.log`) ③살아 있는 스레드 세션 재생성(컨테이너 claude가 셸 래퍼라 pane_current_command=sh → `pane_has_claude` 프로세스 트리 판정) ④**플러그인 연결 실패의 진짜 원인**: 토큰 없이 뜬 세션(configure 세션·스레드 세션)의 discord 플러그인이 "토큰 필요"로 죽으면 2.1.268 MCP 런타임 v2가 `~/.claude/mcp-needs-auth-cache.json`에 `plugin:discord:discord` 인증 필요로 전역 캐시 → 이후 봇 재기동이 전부 "✘ failed"(로그 파일 없음, 디버그에 "1 setup issue: MCP"). 오늘 01:47·03:45 실패 전부 이것. 조치 = 스레드 세션은 `--settings '{"enabledPlugins":{"discord@claude-plugins-official":false}}'`로 기동(실측: 플러그인 1 disabled, 캐시 오염 없음) + bot-up.sh가 기동 직전 그 캐시 항목 제거. bun 심볼릭 링크는 무관했을 가능성 높음(남겨 둠) ⑤스레드 세션 답변 잡음(플러그인 실패·로그 언급) 지침으로 차단. 토큰 재발급(사용자) → pair --force 재실행·검증(users/@me OK)·재기동, 플러그인 연결 03:52. 테스트 44 통과. **사용자 토큰 노출 사고**: bash -x 출력으로 이 세션 기록에 토큰 찍힘 → 재발급 완료.
+
+- 2026-09-11 **스레드 라이브 뷰 컨테이너 최종 실기 통과(공개·비공개 스레드, 메인 채널 무영향)** — 비공개 스레드 "9월11일 작업"(1547818821824552990): 봇은 @멘션으로 초대된 뒤 수신(디스코드 규칙), 1차는 `--settings` 인라인 JSON 따옴표 깨짐으로 스레드 세션 즉시 종료 → 폴백이 메인으로 넘어갔으나 메인이 원인 조사하다 분류기 차단. 수정: 설정을 `<state>/thread-settings.json` 파일로, 폴백 문구를 "실패 한 줄 + 질문에만 답, 로그·설정 열람 금지"로. 재실기: 스레드 세션 답변 게시(stop.log "게시 28자"), 메인 채널 정상, 인증 캐시 `{}` 유지, 플러그인 연결 유지. 테스트 44 통과. 남은 것: folder-bot 커밋·태그 v0.1.9·컨테이너 정식 설치(사용자 승인 대기), 맥 봇들에 0.1.9 적용, codex·agy 스레드(2차), D2 실측.
+
+- 2026-09-11 **"모두 진행" 완료분** ①folder-bot v0.1.9 커밋·태그 푸시(54d4954), 컨테이너 `claude plugin update` 정식 0.1.9, 맥은 마켓플레이스 미설치(캐시 0.1.5뿐, 레포 botctl 직접 사용 구성) → 레포 botctl 함수 호출로 맥 claude 봇 5개(search-youtube·collab·haendaechacne·sendmanual·academy)에 스크립트·훅·지침 적용, 5개 "세션 마감하고 재시작해"→재기동→"이어서하자" 재정박(academy·haendaechacne·search-youtube·collab 보고 수신, sendmanual 대기). **발견**: 봇 세션의 `bot-restart` 호출이 auto 모드 분류기(Interfere With Workloads)에 막힘 → 이 세션에서 직접 실행. 0.1.10 항목: add가 봇 폴더 settings.local.json permissions.allow에 `Bash(bot-restart:*)` 주입 + SKILL "configure 세션 /exit" ②맥 gemini 봇 라이브 TUI 전환: `.env.gemini`(백업 .bak-0911)에 TUI_PANE=gemini-live:0.0·TUI_CHANNEL_ID=1542153403939946596(`#gemini-작업`)·TUI_TRIGGER_GATE=off, tui-up으로 agy TUI 기동(입력 위젯 준비가 25초+ 걸려 재시도 90초로 연장, codex-discord b8219b8), 데몬 kickstart → 채널 "안녕!"이 pane에 붙고 agy 답 중계 확인(presence 락 대화 특정·tail 연결). **Gemini 맥 칸 됨** ③codex-discord v0.1.9 태그 푸시, 컨테이너 `/opt/data/codex-discord` v0.1.9 체크아웃 — 브리지 재기동 때 C-c로 node를 끊자 pane 루트라 tmux 세션이 통째로 닫힘(codex-bridge·gemini-bridge 다운) → `systemctl restart claude-bridge.service`로 감시자가 재생성, 둘 다 로그인 확인. 교훈: 컨테이너 브리지 재기동은 세션 kill 후 감시자 복구가 정석 ④설치기 pins folder-bot 0.1.9·codex-discord v0.1.9, 0.1.22 커밋·태그 푸시(d78e8c1), 테스트 46 통과. **매트릭스 현황**: Claude 4칸 됨(+스레드 라이브 뷰 맥·컨테이너 실기) / Codex 맥 됨·리눅스 부분·컨테이너 C단계·WSL2 부분 / Gemini 맥 됨·리눅스 미실측·컨테이너 C단계·WSL2 미실측. 남은 단계: C(folder-bot codex 컨테이너 폴백·agy 엔진) → D(크리에이티브팀/codex·커뮤니티·멤버십팀/gemini 등록) → D2 실측 → codex·agy 스레드 라이브(2차).
+
+- 2026-09-11 **folder-bot 0.1.10 + 맥 스레드 실기 통과 + 설치기 0.1.23** — 사용자 결정: auto-compact는 폴백 유지, 회전은 선택. 0.1.10(90cb694, 태그 v0.1.10): `bot-thread rotate/fresh`(threads/<ID>/SESSION.md 갱신 뒤 새 uuid·옛 ID previous·창 닫기), 라우팅 훅의 `[재정박]` 접두(fresh 표식 1회), PreCompact 훅 `bot-thread-compact`(사후 알림), Stop 훅이 `threads/<ID>/log.md`에 "시각 Q→A" 자동 기록, 지침(스레드 정본=threads/$DISCORD_THREAD_ID/SESSION.md·마감 4단계·메인은 스레드 관련 질문 시 log.md/SESSION.md/fetch_messages로 찾아 답). 테스트 48. 설계 문서 최종 구조로 정정(c110af3). 컨테이너 `plugin update` 0.1.10·add(PreCompact 주입), 맥 봇 5개 적용(훅·지침은 다음 재시작부터, 스크립트는 즉시). 맥 실기: search-youtube 봇이 `bot-thread open`으로 스레드 생성 → 담당 안내 → 창 t943829 → 답변 게시. 설치기 pins folder-bot 0.1.10, 0.1.23 태그 푸시. **다음**: C단계(folder-bot codex 컨테이너 폴백·agy 엔진) → D(크리에이티브팀/codex·커뮤니티·멤버십팀/gemini) → D2 실측 → codex·agy 스레드 2차. 0.1.11 항목: add가 permissions.allow에 `Bash(bot-restart:*)`·`Bash(bot-thread:*)`; loadout 조각에 "[folder-bot 스레드 세션]" 조건부 한 줄.
+
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
@@ -233,3 +224,4 @@ v3.0 그대로")와 모순. #9 게시 승인·박일용님 답글 승인 대기 
 - 2026-09-10 folder-bot 0.1.7은 WSL2 실측 발견분(add enable만·빈 CLAUDE.md 삭제·SKILL WSL 버스 안내)으로 먼저 소진(b5149e9, 설치기 v0.1.20 pins 0.1.7). "systemd 없음 폴백"은 **0.1.8**로 번호 변경 — 다음 단계 0.2의 0.1.7→0.1.8로 읽을 것. 0.25(WSL2 폴더 봇 테스트)는 agentlayer 세션에서 완료(NAS RESULT-wsl2-folderbot-20260910.md, 통과).
 - 9/10 낮 세션이 고친 파일: 이 레포 `plugins/harness-installer/skills/configure-harness/generator/pins.json`(folder-bot 0.1.8)·`plugins/harness-installer/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.21)·`SESSION.md`. 상류 `~/VSCodeWorkspace/folder-bot`: `plugins/folder-bot/skills/configure-bot/{generator/botctl.py(has_systemd·systemctl_user·enable_linger·write_tmux_unit·write_unit·cmd_doctor),SKILL.md(1. 전제 점검 OS 게이트)}`·`README.md`(전제 문구)·`plugins/folder-bot/.claude-plugin/plugin.json`·`.claude-plugin/marketplace.json`(0.1.8)·`tests/test_botctl.py`(run_no_systemd + 테스트 2건) — 커밋 2649666, 태그 v0.1.8
 - 9/10 밤 세션이 고친 파일(레포 밖, 호스팅어): 호스트 `/root/.bashrc`(alias hermes = `docker exec -it -u hermes -e LANG=C.UTF-8 hermes-agent-iqxn-hermes-agent-1 bash -l`) / 호스트 `/usr/local/sbin/claude-bridge-watch.sh`(사이드카 순회 블록, 백업 `.bak-0910`) / 컨테이너 `/opt/data/.local/bin/{glow,bot-up,bot-restart}` / `/opt/data/.claude/plugins/`(folder-bot 마켓플레이스+0.1.8) / `/opt/data/.config/folder-bot/bots.json`(빈 `{}`) / `/opt/data/.config/systemd/user/`(빈 디렉터리). 호스트 마운트: `/docker/hermes-agent-iqxn/data` → 컨테이너 `/opt/data`. 이 레포는 `SESSION.md`만
+- 9/11 세션이 고친 파일: 이 레포 `CLAUDE.md`(3엔진×3OS 절)·`plugins/harness-installer/skills/configure-harness/generator/pins.json`(folder-bot 0.1.10·codex-discord v0.1.9)·plugin.json·marketplace.json(0.1.23, 태그 v0.1.22·v0.1.23)·`SESSION.md`. folder-bot(`~/VSCodeWorkspace/folder-bot`, 태그 v0.1.9·v0.1.10): `assets/bot-thread.sh`·`bot-thread-route.sh`·`bot-thread-stop.sh`·`bot-thread-compact.sh`·`bot-up.sh`(인증 캐시 제거)·`directive-block.md`·`generator/botctl.py`·`SKILL.md`·`docs/thread-live-view.md`·`tests/test_botctl.py`·`CLAUDE.md`(신규). codex-discord(`~/ai-folder/dev/codex-discord`, 태그 v0.1.9): `src/agy-transcript.mjs`(신규)·`src/index.mjs`·`src/rollout.mjs`·`src/tmux.mjs`·`scripts/tui-up.sh`·`README.md`·`.env.gemini.example`·`skills/setup/SKILL.md`·`test/agy-transcript.test.mjs`·`test/fixtures/agy-transcript-sample.jsonl`·`test/tmux.test.mjs`·`CLAUDE.md`; 맥 운용 `.env.gemini`(TUI 3키, 백업 `.env.gemini.bak-0911`). 레포 밖(맥): `~/.local/bin/bot-thread*`·`bot-up`·`bot-restart`, 봇 5개 폴더 CLAUDE.md 블록·`.claude/settings.local.json` 훅 3종, `~/.config/folder-bot/bots.json`(thread_hooks). 레포 밖(컨테이너): `/opt/data/ai-company/부서/기술개발팀/claude/{CLAUDE.md,.claude/settings.local.json,.discord-state/*,threads/}`, `~/.config/folder-bot/bots.json`, `~/.config/systemd/user/dev-claudecode.*`, `~/.local/bin/bot-*`, 플러그인 캐시 folder-bot 0.1.10, `/opt/data/codex-discord`(v0.1.9), `/usr/local/bin/bun`(root 심볼릭 링크), `~/.claude/mcp-needs-auth-cache.json`(정리됨). 메모리: `feature-matrix-3x3.md`·`agy-tui-relay-possible.md`.
