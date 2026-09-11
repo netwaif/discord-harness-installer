@@ -2,11 +2,11 @@
   "schema_version": 1,
   "repos": {
     "discord-multiagent": "v0.1.3",
-    "codex-discord": "v0.1.10",
+    "codex-discord": "v0.1.18",
     "usage-coach": "v0.1.4"
   },
   "plugins": {
     "multi-agent-starter": "3.5.0",
-    "folder-bot": "0.1.11"
+    "folder-bot": "0.1.12"
   }
 }
