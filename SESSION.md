@@ -14,11 +14,11 @@
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
 **9/11 밤 2차 마감(22:50경).** 스레드 라이브 뷰 A단계 실기 맥·컨테이너 × Claude·Codex·Gemini 6칸 통과. codex-discord v0.1.19, folder-bot 0.1.13, 설치기 0.1.28. 데몬 4개(맥 gemini·codex, 컨테이너 community-agy·creative-codex) v0.1.19.
-재시작 통지 웹훅 = agentlayer-알림(맥·컨테이너 folder-bot config.json). **사용자는 부트캠프 Win10 WSL2 실기로 넘어감** — 지시서 `/Volumes/private/mac-to-win10/README-agentlayer-wsl2-thread-A.md`, 결과 파일 `RESULT-wsl2-thread-A-20260911.md` 대기.
+재시작 통지 웹훅 = agentlayer-알림(맥·컨테이너 folder-bot config.json). **9/12 WSL2 실기 결과 수신** — `/Volumes/private/mac-to-win10/RESULT-wsl2-thread-A-20260911.md`(NAS `smb://netwaif@Netwaif-Storage.local/private`, 미마운트면 `open smb://…`): Claude·Codex·Gemini 3엔진 A단계 통과, 매트릭스 WSL2 열 갱신·SKILL.md §8 미지원 문구 정정(folder-bot 6cb97d7). 발견 5건 코드 실물 확인됨(아래 다음 단계 1).
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. **WSL2 실기(사용자가 부트캠프 Win10에서 진행 중 — 결과 파일 오면 `/Volumes/private/mac-to-win10/RESULT-wsl2-thread-A-20260911.md` 읽고 매트릭스 WSL2 열 갱신·필요 시 folder-bot WSL2 분기 수정)**: 지시서 `/Volumes/private/mac-to-win10/README-agentlayer-wsl2-thread-A.md`(folder-bot 0.1.13·codex-discord v0.1.19·설치기 0.1.28, 3엔진 A단계, codex bwrap 확인·CODEX_TUI_SANDBOX 수동 폴백). 결과 `RESULT-wsl2-thread-A-YYYYMMDD.md`가 오면 매트릭스 WSL2 열 갱신. VM은 건너뜀(Claude는 D2로 검증, codex/agy VM은 범위 밖 — 사용자 결정 9/11).
+1. **WSL2 발견 수정(하나씩 승인)** — 근거 `RESULT-wsl2-thread-A-20260911.md` "발견·제안 요약": ② codex 새 폴더 신뢰 프롬프트("Do you trust the contents")를 `codex-discord/scripts/tui-up.sh` 준비 판정(173행 "TUI 준비 확인")이 오판 → 더미 턴이 "No, quit" 선택·기동 실패(3OS 공통, 무인 부팅이면 실패 잔류) / ① `folder-bot …/generator/botctl.py` 454~455행 브리지 엔진 add가 `enable --now`(claude 엔진 213행은 enable만) / ④ `codex-discord/src/index.mjs` 173~178행 데몬 재시작 시 창 없는 스레드 폐기(fresh 표식 무시) → rotate 뒤 "이어서하자" 무응답 / ③ `botctl start`가 유닛 미경유 → TUI 유닛 failed 잔류 / ⑤ 지침 문구 "성패는 웹훅 알림"(`directive-block-codex.md` 10행·`directive-block.md` 11행)이 스레드 rotate에도 적용됨(3-(b)와 같은 건).
 2. 사용자 질문 후속 검토: 마감이 5분 걸리는 세션의 완료 신호 — 지금은 rotate의 "재시작 들어감" 게시가 유일한 신호, "입력 중…" 상한 5분이 마감보다 짧을 수 있음 → 상한 10분 또는 마감 진행 중 typing 유지 검토.
 3. folder-bot 지침 템플릿 보강: (a) 답에 화자 라벨 흉내 금지(맥 codex AGENTS.md엔 있고 템플릿엔 없음 — 컨테이너 codex가 "[netwaif]" 흉내) (b) rotate엔 웹훅 없음·바로 다음 메시지(codex가 웹훅 알림 지어냄, 맥·컨테이너 2회).
 4. 이월: 붙여넣기 유실 근본 원인(agy 도구 턴 직후 첫 paste, v0.1.17 재시도로 완화) / agy `file://` 경로 링크 / codex 업데이트 프롬프트가 더미 턴 Enter 삼킴(`check_for_update_on_startup=false` 미적용) / tui-restart.sh 스레드 창 동반 종료 / folder-bot 테스트 `threads/999/log.md` 오염 / 맥 codex remove launchctl bootout 실호출 / 스레드 첫 메시지가 멘션 없이 오면 컨텍스트 큐에 쌓였다가 다음 트리거에 합쳐져 log.md Q가 두 문장으로 보임(수다 채널 게이트 on 정상 동작).
