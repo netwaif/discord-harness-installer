@@ -22,8 +22,8 @@
 3. **스레드 라이브 뷰 프로그램 종료** — A~E 단계·매트릭스 9칸·WSL2 재검증까지 끝. 다음 큰 작업은 사용자 지정 대기. (공지 판단 9/12: Claude 엔진 스레드는 공지 가능, codex·agy는 멤버 안내 절 없음 → 2차)
 4. `docs/issues/2026-08-12-…silent-skip.md` #9 이슈 초안(조건 4 추가분 미커밋) — 사용자 게시 승인 대기(8/12부터).
 5. WSL2에 codex-discord v0.1.21 반영(급하지 않음 — 다음 WSL2 작업 때 `git checkout v0.1.21` + `systemctl --user restart` 데몬 유닛).
-3. (9/12 판단, 작업 안 함) typing 상한 10분·codex "한 줄만" 지침 강화 — 결정 기록 9/12 참조.
-4. 이월: 붙여넣기 유실 근본 원인(agy 도구 턴 직후 첫 paste, v0.1.17 재시도로 완화) / agy `file://` 경로 링크 / codex 업데이트 프롬프트가 더미 턴 Enter 삼킴(`check_for_update_on_startup=false` 미적용) / tui-restart.sh 스레드 창 동반 종료 / folder-bot 테스트 `threads/999/log.md` 오염 / 맥 codex remove launchctl bootout 실호출 / 스레드 첫 메시지가 멘션 없이 오면 컨텍스트 큐에 쌓였다가 다음 트리거에 합쳐져 log.md Q가 두 문장으로 보임(수다 채널 게이트 on 정상 동작).
+6. (9/12 판단, 작업 안 함) typing 상한 10분·codex "한 줄만" 지침 강화 — 결정 기록 9/12 참조.
+7. 이월: 붙여넣기 유실 근본 원인(agy 도구 턴 직후 첫 paste, v0.1.17 재시도로 완화) / agy `file://` 경로 링크 / codex 업데이트 프롬프트가 더미 턴 Enter 삼킴(`check_for_update_on_startup=false` 미적용) / tui-restart.sh 스레드 창 동반 종료 / folder-bot 테스트 `threads/999/log.md` 오염 / 맥 codex remove launchctl bootout 실호출 / 스레드 첫 메시지가 멘션 없이 오면 컨텍스트 큐에 쌓였다가 다음 트리거에 합쳐져 log.md Q가 두 문장으로 보임(수다 채널 게이트 on 정상 동작).
 
 ## 결정 기록
 <!-- 누적. 삭제 금지. 형식: - YYYY-MM-DD 한 줄 -->
