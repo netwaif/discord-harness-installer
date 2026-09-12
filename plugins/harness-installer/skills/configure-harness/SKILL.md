@@ -58,6 +58,11 @@ AskUserQuestion 도구가 없는 환경(예: codex)에서는 이 4개를 **채�
 
 ### 3. 디스코드 포탈 수동 단계 (순서대로 안내, 사용자가 끝냈다고 할 때까지 대기)
 
+**자동 경로**: 이 플러그인의 `discord-bot-setup` 스킬(chrome-devtools MCP로 포탈·디스코드 웹 조작)이
+있고 브라우저 제어가 되면 아래 1~3번을 그 스킬이 대신한다(모드 A, 봇 4개, 오케스트레이터=작업 /
+나머지=작업+수다). 토큰 발급(2번의 토큰·4번)은 어느 경로든 사람이 한다. MCP 등록은 사용자 몫이며
+안 돼 있으면 아래 수동 절차가 정본이다.
+
 먼저 설치 루트 폴더를 만든다: `mkdir -p <설치 루트>` (이후 4번 토큰 파일 저장은
 이 폴더 안에서 한다).
 
@@ -68,9 +73,9 @@ AskUserQuestion 도구가 없는 환경(예: codex)에서는 이 4개를 **채�
    정한 이름 그대로). 각 앱 **Bot** 탭에서 토큰 발급 + **MESSAGE CONTENT
    INTENT** 켜기 → Save.
 3. 각 앱 **OAuth2 → URL Generator**: scope `bot` 체크, Bot Permissions에서
-   View Channels / Send Messages / Read Message History / Embed Links /
-   Attach Files / Create Public Threads / Send Messages in Threads 체크 →
-   생성된 URL로 초대. 오케스트레이터 봇은 작업 채널에만, 나머지 세 봇(클로드·
+   View Channels / Send Messages / Read Message History / Create Public Threads /
+   Send Messages in Threads / Embed Links / Attach Files / Add Reactions 8개 체크
+   (URL의 `permissions=309237763136`) → 생성된 URL로 초대. 오케스트레이터 봇은 작업 채널에만, 나머지 세 봇(클로드·
    코덱스·제미나이)은 작업+수다 채널 둘 다에 초대한다.
 4. 토큰 4개는 각각 복사 직후 설치 루트가 될 폴더에서 파일로 저장한다(채팅에
    붙여넣지 않는다). macOS:
