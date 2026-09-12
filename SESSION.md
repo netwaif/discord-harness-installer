@@ -13,11 +13,11 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**9/12 오전.** WSL2 0.1.17 실기 전부 ✓ → 매트릭스 9칸 확정. 관찰 (a)(c)를 **folder-bot 0.1.18 · 설치기 0.1.33**으로 정리(태그 푸시됨, 실기 미검증 — 유닛 문자열 변경뿐). 이어 codex 부팅 업데이트 프롬프트 결함 수정 → **codex-discord v0.1.21 · 설치기 0.1.34**(tui-up.sh 자동 재기동 + 실패 웹훅 + 데몬 ⚠️ 복구 안내, 맥 실기 통과). 배포: 맥 데몬 2개 재기동 완료, 컨테이너 v0.1.21 체크아웃 완료·**데몬 4개 재기동만 남음**(분류기 차단 — 사용자 승인 필요). WSL2는 미배포(v0.1.20). NAS 마운트: `open smb://netwaif@Netwaif-Storage.local/private`.
+**9/12 오전.** WSL2 0.1.17 실기 전부 ✓ → 매트릭스 9칸 확정. 관찰 (a)(c)를 **folder-bot 0.1.18 · 설치기 0.1.33**으로 정리(태그 푸시됨, 실기 미검증 — 유닛 문자열 변경뿐). 이어 codex 부팅 업데이트 프롬프트 결함 수정 → **codex-discord v0.1.21 · 설치기 0.1.34**(tui-up.sh 자동 재기동 + 실패 웹훅 + 데몬 ⚠️ 복구 안내, 맥 실기 통과). 배포: 맥 데몬 2개·컨테이너 데몬 4개 재기동 완료(v0.1.21 로드). WSL2는 미배포(v0.1.20). NAS 마운트: `open smb://netwaif@Netwaif-Storage.local/private`.
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. **컨테이너 브리지 데몬 4개 재기동(v0.1.21 로드)** — 컨테이너에서 `tmux kill-session -t {codex-bridge,gemini-bridge,creative-codex-daemon,community-agy-daemon}` 뒤 호스트 `systemctl restart claude-bridge.service`(감시자 ensure가 재생성, TUI 세션 무영향). 확인: codex-bridge·gemini-bridge pane 마지막 줄 "로그인:", `logs/daemon-{creative-codex,community-agy}.log` 마지막 줄 "로그인:". 분류기가 원격 쓰기로 차단 → 사용자 승인 후 실행.
+1. (9/12 완료) 컨테이너 브리지 데몬 4개 재기동 — 수동 모드에서 실행: 세션 kill → 호스트 `systemctl restart claude-bridge.service` → 4개 재생성·로그인·스레드 재부착 1/0 확인.
 2. **스레드 라이브 뷰 프로그램 종료** — A~E 단계·매트릭스 9칸·WSL2 재검증까지 끝. 다음 큰 작업은 사용자 지정 대기. (공지 판단 9/12: Claude 엔진 스레드는 공지 가능, codex·agy는 멤버 안내 절 없음 → 2차)
 2. `docs/issues/2026-08-12-…silent-skip.md` #9 이슈 초안(조건 4 추가분 미커밋) — 사용자 게시 승인 대기(8/12부터).
 3. (9/12 판단, 작업 안 함) typing 상한 10분·codex "한 줄만" 지침 강화 — 결정 기록 9/12 참조.
