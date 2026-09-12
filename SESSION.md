@@ -17,9 +17,9 @@
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
-1. **다음 하나 제안 대기** — 후보: (가) 다음 단계 2(마감 5분 세션의 typing 상한) / (나) WSL2 관찰 (b) codex rotate 전 2줄 게시 → 지침 문구 조일지. 사용자가 고르면 하나만.
-2. 사용자 질문 후속 검토: 마감이 5분 걸리는 세션의 완료 신호 — 지금은 rotate의 "재시작 들어감" 게시가 유일한 신호, "입력 중…" 상한 5분이 마감보다 짧을 수 있음 → 상한 10분 또는 마감 진행 중 typing 유지 검토.
-3. (9/12 완료) 0.1.16 지침 템플릿 배포 — 결정 기록 참조.
+1. **스레드 라이브 뷰 프로그램 종료** — A~E 단계·매트릭스 9칸·WSL2 재검증까지 끝. 다음 큰 작업은 사용자 지정 대기.
+2. `docs/issues/2026-08-12-…silent-skip.md` #9 이슈 초안(조건 4 추가분 미커밋) — 사용자 게시 승인 대기(8/12부터).
+3. (9/12 판단, 작업 안 함) typing 상한 10분·codex "한 줄만" 지침 강화 — 결정 기록 9/12 참조.
 4. 이월: 붙여넣기 유실 근본 원인(agy 도구 턴 직후 첫 paste, v0.1.17 재시도로 완화) / agy `file://` 경로 링크 / codex 업데이트 프롬프트가 더미 턴 Enter 삼킴(`check_for_update_on_startup=false` 미적용) / tui-restart.sh 스레드 창 동반 종료 / folder-bot 테스트 `threads/999/log.md` 오염 / 맥 codex remove launchctl bootout 실호출 / 스레드 첫 메시지가 멘션 없이 오면 컨텍스트 큐에 쌓였다가 다음 트리거에 합쳐져 log.md Q가 두 문장으로 보임(수다 채널 게이트 on 정상 동작).
 
 ## 결정 기록
@@ -151,6 +151,7 @@
 - 2026-09-12 **WSL2 0.1.17 실기 결과 수신 — 전부 통과**: `RESULT-wsl2-botctl-0.1.17-20260912.md`(WSL 2.5.7 Ubuntu-24.04 systemd, Claude 2.1.268·codex 0.153.4·agy 1.2.1). ① add enable만·즉시 ✓ ② config.toml 선등록 ✓ + 선등록 삭제 뒤 tui-up.sh 신뢰 프롬프트 감지 폴백 ✓ ③ start 유닛 경유 ✓·세션만 죽인 뒤 restart ✓·stop 두 유닛 inactive ✓ ⑤ 스레드 (c) 웹훅 언급·rotate 뒤 게시·라벨 흉내 없음 ✓ / agy ①③ ✓ / 정리 잔존 0. 디스코드 메시지는 WSL2 측 에이전트가 Windows Chrome UI 자동화로 사용자 계정으로 보냄. 관찰(사소): (a) 세션이 이미 없을 때 restart의 ExecStop kill-session exit 1 → journal `Failed with result exit-code` 한 줄(최종 active, 기능 영향 없음) (b) codex가 rotate 전 진행 멘트 1줄 추가 게시(총 2줄, 금지사항 위반은 아님) (c) agy 유닛 Description "codex TUI"·"codex 브리지" 문구. 코드 변경 없음, folder-bot 매트릭스 문서만 기록(66ac274).
 - 2026-09-12 **WSL2 관찰 (a)(c) 수정 → folder-bot 0.1.18·설치기 0.1.33**(사용자 승인): `botctl.py` `write_unit`(claude)·`write_codex_units`(codex/agy TUI) ExecStop을 `-{tmux} kill-session`으로(세션 없을 때 exit 1을 systemd가 실패로 안 기록) + 브리지 데몬·TUI 유닛 Description을 `bot["engine"]`으로(agy 유닛이 "codex"로 보이던 것). 테스트: `ExecStop=-` 단언 2곳·agy `(agy TUI tmux 세션 g-bot)` 단언 추가, 54 통과. 설치기 pins 0.1.18·0.1.33, 46 통과. 태그 folder-bot v0.1.18(eac9323, 브랜치 main — `push origin master` 실패 후 HEAD로 푸시)·설치기 v0.1.33(38e1f77). 관찰 (b)(codex rotate 전 2줄)는 미수정. 실기 미검증: 이미 배포된 리눅스 유닛 파일은 add 재실행 전까지 옛 내용.
 - 2026-09-12 **컨테이너 codex-discord v0.1.19→v0.1.20 배포**(사용자 지시 "3번 배포해"): 헤르메스 컨테이너(hermes 사용자) `/opt/data/codex-discord`에서 `git fetch --tags && git checkout v0.1.20`(99956e6). 차이는 `scripts/tui-up.sh`(신뢰 프롬프트 감지, 167~170행 실물 확인)·테스트뿐이라 데몬 4개(codex-bridge·gemini-bridge·creative-codex-daemon·community-agy-daemon) 재기동 안 함 — tui-up.sh는 다음 tui-restart/rotate 때 읽힘. tmux 세션 9개 그대로. 접속 경로는 결정 기록 8/14~15 항목 참조.
+- 2026-09-12 **후보 2건 "불필요" 판정(사용자: 필요하면 작업)** ① typing 상한 5→10분: codex-discord `src/index.mjs` 190~198행 `startTyping`(8초 간격, 5분 상한, `relayReply`에서 stop). WSL2 실기 rotate 마감은 16:34:37 지시 → 16:34:57 "기록 저장함" 게시 = **20초**, 9/11 맥·컨테이너도 분 단위 아님. 5분 초과 근거 없고, 늘리면 세션 사망 시 헛 표시가 길어지며 index.mjs 변경이라 3곳 데몬 재기동 필요 → 안 함 ② codex rotate 전 2줄: 진행 멘트 "스레드 기록을 갱신한 뒤 재시작할게요"는 codex commentary가 롤아웃 중계로 게시된 것(구조), 금지 3항목(웹훅·rotate 뒤·라벨)은 준수. 문구를 조여도 commentary 습관은 지침으로 못 막고 무해 → 안 함.
 ## 파일 흔적
 <!-- 누적. 만든/고친 파일의 경로를 그대로 적는다. "설정 파일 고침" 같은 산문 금지 -->
 <!-- 형식: - `경로` 무엇을 (함수명·핵심 식별자 포함) -->
