@@ -13,14 +13,15 @@
 ## 현재 상태
 <!-- 덮어쓰기. 항상 짧게 — 지금 어디까지 왔는지 스냅샷만 -->
 
-**9/12 오전.** WSL2 0.1.17 실기 전부 ✓ → 매트릭스 9칸 확정. 관찰 (a)(c)를 **folder-bot 0.1.18 · 설치기 0.1.33**으로 정리(태그 푸시됨, 실기 미검증 — 유닛 문자열 변경뿐). 이어 codex 부팅 업데이트 프롬프트 결함 수정 → **codex-discord v0.1.21 · 설치기 0.1.34**(tui-up.sh 자동 재기동 + 실패 웹훅 + 데몬 ⚠️ 복구 안내, 맥 실기 통과). 배포: 맥 데몬 2개·컨테이너 데몬 4개 재기동 완료(v0.1.21 로드). WSL2는 미배포(v0.1.20). 이어 사용자 스킬 `discord-bot-setup`(포탈 자동화)을 설치기에 동봉 → **설치기 0.1.35 · folder-bot 0.1.19**(권한 8개 통일, 자동/수동 분기, MCP 등록은 사용자 몫). codex·agy에서 스킬 실기는 미실측. NAS 마운트: `open smb://netwaif@Netwaif-Storage.local/private`.
+**9/12 마감(9/13 새벽).** 최신 = **설치기 0.1.35 · folder-bot 0.1.19 · codex-discord v0.1.21**(전부 태그 푸시). 스레드 라이브 뷰 프로그램 종료(매트릭스 9칸 통과). 오늘 한 것 4건은 결정 기록 9/12 참조: WSL2 0.1.17 실기 ✓ / 유닛 정리 0.1.18 / codex 부팅 업데이트 프롬프트 자동 재기동 v0.1.21(맥·컨테이너 배포 완료, WSL2는 v0.1.20 그대로) / `discord-bot-setup` 스킬 설치기 동봉(권한 8개 통일). 미실측: 그 스킬의 codex·agy·범용 MCP 맥·WSL2 칸. NAS 마운트: `open smb://netwaif@Netwaif-Storage.local/private`.
 ## 다음 단계
 <!-- 덮어쓰기. 첫 항목 = 다음 세션이 바로 집어들 일 -->
 
 1. **discord-bot-setup 스킬 codex·agy 실기(다음 항목, 승인 대기)** — `codex mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest` / `agy mcp add …` 등록 뒤 각 세션에서 스킬로 테스트 앱 1개 생성·Intent·초대까지. 통과하면 9칸 표 codex·agy 줄 "됨". 범용 chrome-devtools-mcp로 맥 Claude 칸도 함께(지금 실기는 agentlayer 경유뿐). WSL2 칸은 별도.
 2. (9/12 완료) 컨테이너 브리지 데몬 4개 재기동 — 수동 모드에서 실행: 세션 kill → 호스트 `systemctl restart claude-bridge.service` → 4개 재생성·로그인·스레드 재부착 1/0 확인.
 3. **스레드 라이브 뷰 프로그램 종료** — A~E 단계·매트릭스 9칸·WSL2 재검증까지 끝. 다음 큰 작업은 사용자 지정 대기. (공지 판단 9/12: Claude 엔진 스레드는 공지 가능, codex·agy는 멤버 안내 절 없음 → 2차)
-2. `docs/issues/2026-08-12-…silent-skip.md` #9 이슈 초안(조건 4 추가분 미커밋) — 사용자 게시 승인 대기(8/12부터).
+4. `docs/issues/2026-08-12-…silent-skip.md` #9 이슈 초안(조건 4 추가분 미커밋) — 사용자 게시 승인 대기(8/12부터).
+5. WSL2에 codex-discord v0.1.21 반영(급하지 않음 — 다음 WSL2 작업 때 `git checkout v0.1.21` + `systemctl --user restart` 데몬 유닛).
 3. (9/12 판단, 작업 안 함) typing 상한 10분·codex "한 줄만" 지침 강화 — 결정 기록 9/12 참조.
 4. 이월: 붙여넣기 유실 근본 원인(agy 도구 턴 직후 첫 paste, v0.1.17 재시도로 완화) / agy `file://` 경로 링크 / codex 업데이트 프롬프트가 더미 턴 Enter 삼킴(`check_for_update_on_startup=false` 미적용) / tui-restart.sh 스레드 창 동반 종료 / folder-bot 테스트 `threads/999/log.md` 오염 / 맥 codex remove launchctl bootout 실호출 / 스레드 첫 메시지가 멘션 없이 오면 컨텍스트 큐에 쌓였다가 다음 트리거에 합쳐져 log.md Q가 두 문장으로 보임(수다 채널 게이트 on 정상 동작).
 
